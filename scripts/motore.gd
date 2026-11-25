@@ -442,32 +442,63 @@ func _costo_con(bersagli: Array, facce: Array, disp: Dictionary, mantra: String)
 	token["_tot"] = tot
 	return token
 
-## Probabilità (0-1) di esorcizzare almeno i bersagli dati tirando n dadi con i segnalini disponibili
+## Probabilità (0-1) di esorcizzare almeno i bersagli dati tirando n dadi con i segnalini disponibili.
+## Conta le combinazioni di facce (non le sequenze) e ricorda i risultati già calcolati.
+static var _cache_prob := {}
+static var _combinazioni := {}
+
 func probabilita(bersagli: Array, n: int, disp: Dictionary) -> float:
+	var chiave: String = str(n) + "|" + str(disp) + "|" + str(bianco_nullo()) + "|" + s.cerchio
+	for x in bersagli:
+		chiave += "|" + str(requisito(x[0], x[1])) + str(Dati.ha(int(spazio(x[0], x[1]).c), "permanente", "immune")) + str(ha_mantra(x[0], x[1]))
+	if _cache_prob.has(chiave):
+		return _cache_prob[chiave]
 	if n <= 0:
-		return 1.0 if costo(bersagli, [], disp).get("_ok", false) else 0.0
-	var tot := 0
-	var ok := 0
-	var idx := []
-	for i in n:
-		idx.append(0)
-	while true:
+		var v0 := 1.0 if costo(bersagli, [], disp).get("_ok", false) else 0.0
+		_cache_prob[chiave] = v0
+		return v0
+	var tot := 0.0
+	var ok := 0.0
+	for comb in _comb(n):
 		var f := []
-		for i in n:
-			f.append(Dati.FACCE_TAO[idx[i]])
-		tot += 1
+		for i in 6:
+			for j in int(comb[0][i]):
+				f.append(Dati.FACCE_TAO[i])
+		var peso: float = comb[1]
+		tot += peso
 		if costo(bersagli, f, disp).get("_ok", false):
-			ok += 1
-		var j := 0
-		while j < n:
-			idx[j] += 1
-			if idx[j] < 6:
-				break
-			idx[j] = 0
-			j += 1
-		if j >= n:
-			break
-	return float(ok) / float(tot)
+			ok += peso
+	var v := ok / tot
+	if _cache_prob.size() > 20000:
+		_cache_prob.clear()
+	_cache_prob[chiave] = v
+	return v
+
+## Tutti i modi di distribuire n dadi sulle 6 facce, con il loro peso (coefficiente multinomiale)
+static func _comb(n: int) -> Array:
+	if _combinazioni.has(n):
+		return _combinazioni[n]
+	var o := []
+	var fatt := [1, 1, 2, 6, 24, 120, 720, 5040]
+	# tutte le sequenze di 6 numeri che sommano a n
+	var cur := [0, 0, 0, 0, 0, 0]
+	var totale := int(pow(n + 1, 5))
+	for code in totale:
+		var x := code
+		var somma := 0
+		for i in 5:
+			cur[i] = x % (n + 1)
+			x = x / (n + 1)
+			somma += cur[i]
+		if somma > n:
+			continue
+		cur[5] = n - somma
+		var den := 1
+		for q in cur:
+			den *= fatt[q]
+		o.append([cur.duplicate(), float(fatt[n]) / den])
+	_combinazioni[n] = o
+	return o
 
 # ============================================================ motore a pila
 
@@ -1039,7 +1070,7 @@ func _t_premio_tao(t: Dictionary) -> void:
 		return
 	var testo := "Scegli un segnalino Tao" + ("" if int(t.n) == 1 else " (%d da prendere)" % int(t.n))
 	if t.get("perche", "") != "":
-		testo = String(t.perche) + ": " + testo.to_lower()
+		testo = String(t.perche) + ": scegli un segnalino Tao" + ("" if int(t.n) == 1 else " (%d da prendere)" % int(t.n))
 	_chiedi(t, a, "colore_tao", testo, _opzioni_colore(col))
 
 func _t_premio_incarnazione(t: Dictionary) -> void:
@@ -1153,10 +1184,14 @@ func opzioni_yang(t: Dictionary) -> Array:
 				extra_a = not "a" in tipi
 		var bersagli := bersagli_esorcismo(p)
 		if not bersagli.is_empty():
+			var nomi := []
+			for x in bersagli:
+				nomi.append(Dati.nome(int(spazio(x[0], x[1]).c)))
+			var cosa := " e ".join(nomi)
 			if puo_e:
-				o.append({"id": "esorcizza", "t": "Tenta un esorcismo"})
+				o.append({"id": "esorcizza", "t": "Esorcismo contro " + cosa, "spazio": bersagli[0]})
 			elif extra_e:
-				o.append({"id": "n_esorcizza", "t": "Secondo esorcismo (segnalino potere)", "neutro": true})
+				o.append({"id": "n_esorcizza", "t": "Altro esorcismo contro %s (segnalino potere)" % cosa, "neutro": true})
 		if aiuto_possibile(qui, p):
 			var nt := Dati.tessera(s.villaggio[qui].id).get("nome", "")
 			if puo_a:
@@ -1590,6 +1625,15 @@ func _t_aiuto(t: Dictionary) -> void:
 				_evento({"e": "dadi", "f": t.facce, "p": p})
 				_diario("L'erborista: %s." % _testo_facce(t.facce))
 				t["i"] = 0
+				if potere(p, "verde_1"):
+					_chiedi(t, p, "ritira_erborista", "Erborista: %s. Prediletto degli Dei: ritiri i dadi? (vale il secondo tiro)" % _testo_facce(t.facce),
+						[{"id": "tieni", "t": "Tieni i dadi"}, {"id": "ritira", "t": "Ritira i dadi"}])
+					return
+			if r == "ritira":
+				t.facce = _tira_tao(t.facce.size())
+				s.dadi = {"facce": t.facce, "p": p}
+				_evento({"e": "dadi", "f": t.facce, "p": p})
+				_diario("Nuovo tiro: %s." % _testo_facce(t.facce))
 			if r.begins_with("c:"):
 				_prendi_tao(b, r.substr(2))
 				_diario("%s prende un Tao %s." % [nome_plancia(p), Dati.NOMI_COLORE[r.substr(2)]])

@@ -54,6 +54,23 @@ func _vai() -> void:
 	p._aggiorna()
 	await _attendi(30)
 	await _foto("partita")
+	# un turno giocato con i pulsanti, come farebbe una persona
+	var ia := IA.new(p.m)
+	for passo in 6:
+		if not p.m.in_attesa() or int(p.m.s.domanda.chi) != 0:
+			break
+		var voluto := ia.scegli()
+		var premuto := false
+		for b in _bottoni(p.box_domanda):
+			var o := _opzione_di(p, b)
+			if o == voluto:
+				b.pressed.emit()
+				premuto = true
+				break
+		if not premuto:
+			p._rispondi(voluto)
+		await _attendi(20)
+		await _foto("turno_%d" % passo)
 	p._mostra_info(Testi.carta(58), Stile.carta(58))
 	await _attendi(5)
 	await _foto("carta")
@@ -62,3 +79,19 @@ func _vai() -> void:
 	await _attendi(5)
 	await _foto("regole")
 	quit()
+
+func _bottoni(n: Node) -> Array:
+	var o := []
+	for c in n.get_children():
+		if c is Button and not c.disabled:
+			o.append(c)
+		o += _bottoni(c)
+	return o
+
+func _opzione_di(p: Partita, b: Button) -> String:
+	for c in b.pressed.get_connections():
+		var cb: Callable = c.callable
+		var a := cb.get_bound_arguments()
+		if a.size() > 0:
+			return str(a[0])
+	return ""

@@ -5,6 +5,9 @@ extends RefCounted
 ## il valore di ogni aiuto del villaggio e sceglie il movimento e l'azione migliori.
 
 var m: Motore
+var cerca := true          # simula le mosse possibili con il motore (falso dentro le simulazioni)
+var campioni := 4          # tiri simulati per ogni mossa
+var profondo := false      # simula anche i turni dei compagni fino al proprio turno successivo
 
 func _init(motore: Motore) -> void:
 	m = motore
@@ -17,7 +20,10 @@ func scegli() -> String:
 	var p := int(d.chi)
 	var id := ""
 	match String(d.tipo):
-		"yang": id = _yang(p, o)
+		"yang":
+			id = _yang(p, o)
+			if cerca and (String(id).begins_with("m:") or String(id).begins_with("mv:") or id in ["esorcizza", "n_esorcizza", "aiuto", "n_aiuto", "basta"]):
+				id = _cerca(p, o, id)
 		"piazza": id = _piazza(o)
 		"chi_perde_qi": id = _max_qi(o)
 		"premio":
@@ -26,6 +32,12 @@ func scegli() -> String:
 		"premio_gruppo": id = _min_qi(o)
 		"ritira_maledizione": id = "ritira"
 		"verde_neutro": id = "si"
+		"ritira_erborista":
+			var bianchi := 0
+			for f in m.s.domanda.task.facce:
+				if f == "bianco":
+					bianchi += 1
+			id = "tieni" if bianchi > 0 else "ritira"
 		"ritira": id = "ritira_inutili"
 		"esito": id = _esito(p, o)
 		"tessera_aiuto": id = _miglior_aiuto(p, o)
@@ -80,9 +92,9 @@ func minaccia(p: int, k: int) -> float:
 		if int(m.spazio(p, kk).c) > 0:
 			pieni += 1
 	if pieni == 3:
-		v += 3.5
+		v += 6.0
 	elif pieni == 2:
-		v += 1.5
+		v += 2.5
 	for e in Dati.carta(c).get("esorcismo", []):
 		match e:
 			"qi_yy": v += 2.0
@@ -178,7 +190,7 @@ func valore_aiuto(p: int, t: int) -> float:
 				if c != m.s.cerchio and int(m.s.riserva_tao[c]) > 0:
 					mx = maxf(mx, float(conta[c]))
 			var ora := float(conta.get(m.s.cerchio, 0.0)) if m.s.cerchio != "" else 0.0
-			return 1.4 * (mx - ora) - 0.5
+			return 3.0 * (mx - ora) + 1.0
 		"stregone":
 			if int(b.qi) <= 1:
 				return -5.0
@@ -517,3 +529,159 @@ func _pad_spazio(o: Array) -> String:
 		if m.spazio(x.spazio[0], x.spazio[1]).buddha:
 			return x.id
 	return o[0].id
+
+# ------------------------------------------------------------ ricerca con il motore
+
+## Prova davvero le mosse e le azioni possibili su copie della partita e sceglie quella che lascia
+## il villaggio messo meglio (in media sui tiri dei dadi).
+func _cerca(p: int, o: Array, proposta: String) -> String:
+	var candidati := []
+	for x in o:
+		var id: String = x.id
+		if id.begins_with("m:") or id.begins_with("mv:") or id in ["esorcizza", "n_esorcizza", "aiuto", "n_aiuto", "basta"]:
+			candidati.append(id)
+	if candidati.size() <= 1:
+		return proposta
+	var best := proposta
+	var bv := -INF
+	for id in candidati:
+		var v := _valuta_mossa(p, id)
+		if id == proposta:
+			v += 0.5
+		if v > bv:
+			bv = v
+			best = id
+	return best
+
+func _copia(seme: int) -> Motore:
+	var c := Motore.new()
+	var d: Dictionary = m.s.duplicate(true)
+	d.diario = []
+	d.eventi = []
+	c.s = d
+	c.s.rng = str(seme)
+	# il computer non sbircia il mazzo: nella copia i fantasmi sono rimescolati (le incarnazioni restano al loro posto)
+	var pos := []
+	var carte := []
+	for i in c.s.mazzo.size():
+		if not Dati.e_incarnazione(int(c.s.mazzo[i])):
+			pos.append(i)
+			carte.append(c.s.mazzo[i])
+	c._mescola(carte)
+	for k in pos.size():
+		c.s.mazzo[pos[k]] = carte[k]
+	return c
+
+func _valuta_mossa(p: int, id: String) -> float:
+	var tot := 0.0
+	var n := campioni
+	for k in n:
+		var c := _copia(hash(str(k) + id + str(m.s.rng)))
+		var ia2 := IA.new(c)
+		ia2.cerca = false
+		if not c.rispondi(id):
+			return -INF
+		var passi := 0
+		var uscito := false
+		while not c.finita() and c.in_attesa() and passi < 400:
+			var d: Dictionary = c.s.domanda
+			if int(c.s.turno_di) != p:
+				uscito = true
+				if not profondo:
+					break
+			elif uscito:
+				break
+			elif d.tipo == "yang" and int(d.chi) == p and d.task.fase == "fine" and not profondo:
+				break
+			c.rispondi(ia2.scegli())
+			passi += 1
+		tot += ia2.valuta()
+	return tot / n
+
+func _ha_dadi(id: String, p: int) -> bool:
+	if id.begins_with("m:") or id.begins_with("mv:"):
+		return true
+	if id in ["esorcizza", "n_esorcizza"]:
+		return true
+	if id in ["aiuto", "n_aiuto"]:
+		var t := int(m.plancia(p).tessera)
+		return String(m.s.villaggio[t].id) in ["erborista", "casa_te", "altare", "cimitero"]
+	return false
+
+## Quanto è buona la situazione per i Taoisti (più alto è meglio)
+func valuta() -> float:
+	if m.s.esito == "vittoria":
+		return 100000.0
+	if m.s.esito == "sconfitta":
+		return -100000.0
+	var v := 0.0
+	var lim := m.limite_infestate()
+	var inf := m.n_infestate()
+	for q in Motore.POSIZIONI:
+		var b := m.plancia(q)
+		if b.taoista:
+			if b.vivo:
+				var qi := int(b.qi)
+				v += 30.0 + 10.0 * mini(qi, 4) + 4.0 * maxi(qi - 4, 0)
+				if qi == 1:
+					v -= 8.0
+				var nt := _n_tao(b)
+				v += 2.4 * mini(nt, 6) + 0.6 * maxi(nt - 6, 0)
+				if b.yinyang:
+					v += 6.0
+				v += 6.0 * int(b.buddha) + 2.0 * int(b.poteri)
+			else:
+				v -= 25.0
+		else:
+			v += 4.0 * int(b.qi)
+		var pieni := 0
+		for k in 3:
+			var sp := m.spazio(q, k)
+			var c := int(sp.c)
+			if c > 0:
+				pieni += 1
+				v -= _peso_fantasma(q, k, inf, lim)
+			elif sp.buddha:
+				v += 5.0
+		if pieni == 3:
+			v -= 10.0
+		elif pieni == 2:
+			v -= 3.0
+	v -= 40.0 * inf
+	if inf >= lim - 1:
+		v -= 60.0
+	if m.s.cerchio != "":
+		# il Cerchio vale per ogni fantasma del suo colore in gioco
+		v += 3.0
+		for x in m.fantasmi_in_gioco():
+			if Dati.resistenza(int(m.spazio(x[0], x[1]).c)).has(m.s.cerchio):
+				v += 4.0
+	v += 6.0 * int(m.s.buddha_tempio) * 0.0
+	return v
+
+func _peso_fantasma(q: int, k: int, inf: int, lim: int) -> float:
+	var sp := m.spazio(q, k)
+	var c := int(sp.c)
+	var w := 7.0
+	var r := Dati.resistenza(c)
+	for x in r:
+		w += 0.8 * int(r[x])
+	if Dati.ha(c, "turno", "infestante"):
+		w += 12.0 if int(sp.inf) == 1 else 5.0
+		if int(sp.inf) == 1 and inf >= lim - 1:
+			w += 60.0
+	if Dati.ha(c, "turno", "tormento"):
+		w += 5.0
+	if Dati.ha(c, "turno", "gruppo_tao"):
+		w += 4.0
+	if Dati.ha(c, "arrivo", "potere"):
+		w += 3.0
+	if Dati.ha(c, "arrivo", "notao"):
+		w += 5.0
+	if sp.dado:
+		w += 4.0
+	if Dati.ha(c, "permanente", "nopoteri"):
+		w += 6.0
+	if Dati.e_incarnazione(c):
+		w += 20.0
+	return w
