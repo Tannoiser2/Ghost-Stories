@@ -31,7 +31,7 @@ static func resistenza(n: int) -> String:
 	var p := []
 	var tot := 0
 	for c in r:
-		p.append("%d %s" % [int(r[c]), Dati.NOMI_COLORE[c]])
+		p.append("%d %s" % [int(r[c]), "del colore della plancia" if c == "plancia" else Dati.NOMI_COLORE[c]])
 		tot += int(r[c])
 	if r.size() == 1:
 		var col: String = Dati.carta(n).get("colore", "nero")

@@ -3,6 +3,14 @@ extends RefCounted
 ## L'intelligenza dei Taoisti guidati dal computer: risponde a ogni domanda del motore.
 ## Valuta la minaccia di ogni fantasma, la probabilità esatta di esorcizzarlo con i dadi e i segnalini,
 ## il valore di ogni aiuto del villaggio e sceglie il movimento e l'azione migliori.
+## Pesi della valutazione (tarati con partite automatiche: tests/taratura.gd)
+## Pesi tarati con tests/taratura.gd (ricerca casuale su partite automatiche)
+static var P := {
+	"base": 2.84, "inf1": 15.83, "inf0": 9.2, "tormento": 7.01, "pieni3": 8.41, "pieni2": 1.96,
+	"tempio": 9.01, "erbor": 7.68, "erbor_tok": 0.6, "streg": 8.34, "cerchio": 1.12, "casa_qi1": 12.42,
+	"casa_qi2": 1.61, "pos": 0.12, "premio_qiyy": 5.24, "potere": 1.91, "notao": 3.07, "dado": 3.11,
+	"guard": 4.3, "altare": 6.43, "costo_fant": 1.34, "esorc_bonus": 0.56,
+}
 
 var m: Motore
 var cerca := true          # simula le mosse possibili con il motore (falso dentro le simulazioni)
@@ -52,6 +60,13 @@ func scegli() -> String:
 		"padiglione_spazio": id = _pad_spazio(o)
 		"padiglione_taoista": id = "no"
 		"padiglione_dove": id = o[0].id
+		"suling": id = _suling(o)
+		"barriera": id = _barriera(o)
+		"uccidi_villico": id = _uccidi_villico(o)
+		"artefatto": id = _max_qi(o)
+		"perdi_qi": id = _max_qi(o)
+		"pozione": id = _pozione(o)
+		"kungfu": id = _kungfu(p, o)
 	for x in o:
 		if x.id == id:
 			return id
@@ -64,25 +79,31 @@ func minaccia(p: int, k: int) -> float:
 	var c := int(sp.c)
 	if c <= 0:
 		return 0.0
-	var v := 3.5
+	var v: float = P.base
 	var lim := m.limite_infestate()
 	var inf := m.n_infestate()
 	if Dati.ha(c, "turno", "infestante"):
-		v += 12.0 if int(sp.inf) == 1 else 5.0
+		v += P.inf1 if int(sp.inf) == 1 else P.inf0
 		if int(sp.inf) == 1 and inf >= lim - 2:
 			v += 10.0
 		if int(sp.inf) == 1 and inf >= lim - 1:
 			v += 25.0
 	if Dati.ha(c, "turno", "tormento"):
-		v += 3.0
+		v += P.tormento
 	if Dati.ha(c, "turno", "gruppo_tao"):
 		v += 2.5
+	if m.s.get("luna", false) and not m.suling_su(p, k):
+		var morti := float(m.s.villici_morti.size())
+		if Dati.ha(c, "turno", "divoratore") or Dati.ha(c, "turno", "uccidi_villico"):
+			v += 7.0 + morti * 0.9
+		if Dati.ha(c, "turno", "infestante") and int(sp.inf) == 1:
+			v += 2.0 + morti * 0.3
 	if Dati.ha(c, "arrivo", "potere"):
-		v += 2.5 if m.plancia(p).taoista else 1.5
+		v += P.potere if m.plancia(p).taoista else P.potere * 0.6
 	if Dati.ha(c, "arrivo", "notao"):
-		v += 3.5
+		v += P.notao
 	if sp.dado:
-		v += 3.0
+		v += P.dado
 	if Dati.ha(c, "permanente", "nopoteri"):
 		v += 4.0
 	if Dati.ha(c, "permanente", "bianco_nullo"):
@@ -92,12 +113,12 @@ func minaccia(p: int, k: int) -> float:
 		if int(m.spazio(p, kk).c) > 0:
 			pieni += 1
 	if pieni == 3:
-		v += 6.0
+		v += P.pieni3
 	elif pieni == 2:
-		v += 2.5
+		v += P.pieni2
 	for e in Dati.carta(c).get("esorcismo", []):
 		match e:
-			"qi_yy": v += 2.0
+			"qi_yy": v += P.premio_qiyy
 			"tao2": v += 1.5
 			"tao1": v += 0.8
 			"maledizione": v -= 1.0
@@ -126,7 +147,7 @@ func valore_esorcismo(p: int, t: int) -> float:
 	var best := 0.0
 	for x in bers:
 		var pr := m.probabilita([x], n, disp)
-		best = maxf(best, pr * minaccia(x[0], x[1]))
+		best = maxf(best, pr * (minaccia(x[0], x[1]) + P.esorc_bonus))
 	if bers.size() == 2:
 		var pr2 := m.probabilita(bers, n, disp)
 		best = maxf(best, pr2 * (minaccia(bers[0][0], bers[0][1]) + minaccia(bers[1][0], bers[1][1])))
@@ -150,19 +171,19 @@ func valore_aiuto(p: int, t: int) -> float:
 	if not m.aiuto_possibile(t, p):
 		return -1.0
 	var b := m.plancia(p)
-	var costo_fantasma := 2.5
+	var costo_fantasma: float = P.costo_fant
 	var lim := m.limite_infestate()
 	var inf := m.n_infestate()
 	match String(m.s.villaggio[t].id):
 		"casa_te":
 			var v := 1.2
 			if int(b.qi) <= 1:
-				v += 5.0
+				v += P.casa_qi1
 			elif int(b.qi) == 2:
-				v += 2.5
+				v += P.casa_qi2
 			return v - costo_fantasma
 		"erborista":
-			return 4.0 - 0.35 * _n_tao(b)
+			return P.erbor - P.erbor_tok * _n_tao(b)
 		"padiglione":
 			var bud := _spazio_buddha_libero()
 			if not bud.is_empty():
@@ -173,16 +194,16 @@ func valore_aiuto(p: int, t: int) -> float:
 				return mx
 			return 0.2
 		"altare":
-			var v := 5.0
+			var v: float = P.altare
 			if inf >= lim - 1:
 				v += 15.0
 			return v - costo_fantasma
 		"tempio":
-			return 4.5 if int(b.buddha) == 0 else 1.5
+			return P.tempio if int(b.buddha) == 0 else P.tempio / 3.0
 		"cerchio":
 			var conta := {}
 			for x in m.fantasmi_in_gioco():
-				var r := Dati.resistenza(int(m.spazio(x[0], x[1]).c))
+				var r := m.requisito(x[0], x[1])
 				for c in r:
 					conta[c] = float(conta.get(c, 0.0)) + 1.0
 			var mx := 0.0
@@ -190,7 +211,7 @@ func valore_aiuto(p: int, t: int) -> float:
 				if c != m.s.cerchio and int(m.s.riserva_tao[c]) > 0:
 					mx = maxf(mx, float(conta[c]))
 			var ora := float(conta.get(m.s.cerchio, 0.0)) if m.s.cerchio != "" else 0.0
-			return 3.0 * (mx - ora) + 1.0
+			return P.cerchio * (mx - ora) + 1.0
 		"stregone":
 			if int(b.qi) <= 1:
 				return -5.0
@@ -199,9 +220,24 @@ func valore_aiuto(p: int, t: int) -> float:
 				if not Dati.e_incarnazione(int(m.spazio(x[0], x[1]).c)):
 					mx = maxf(mx, minaccia(x[0], x[1]))
 			# il Qi è la vita: lo Stregone si chiama solo nelle emergenze
-			return mx - (14.0 if int(b.qi) == 2 else 9.5)
+			return mx - (P.streg + 4.5 if int(b.qi) == 2 else P.streg)
 		"cimitero":
-			return 8.0
+			if int(m.s.n_taoisti) > 1 and not m.taoisti_morti().is_empty():
+				return 8.0
+			return 2.0 + float(m.s.villici_morti.size()) * 0.4
+		"kungfu":
+			var mx := 0.0
+			for modo in ["plancia", "nero"]:
+				var g := m._bersagli_kungfu(p, modo)
+				var v := 0.0
+				for x in g:
+					v += minaccia(x[0], x[1])
+				if not g.is_empty():
+					var disp := {"cristalli": int(b.get("cristalli", 0))}
+					for c in Dati.COLORI_TAO:
+						disp[c] = int(b.tao[c])
+					mx = maxf(mx, v * m.probabilita(g, m.dadi_disponibili(), disp) - 0.3)
+			return mx
 		"guardiano":
 			var mx := 0
 			for q in Motore.POSIZIONI:
@@ -210,7 +246,7 @@ func valore_aiuto(p: int, t: int) -> float:
 					if int(m.spazio(q, k).inf) == 1:
 						n += 1
 				mx = maxi(mx, n)
-			var v := 7.0 * mx
+			var v: float = P.guard * mx
 			if inf >= lim - 2:
 				v += 8.0 * mx
 			if inf >= lim - 1:
@@ -233,7 +269,20 @@ func _spazio_buddha_libero() -> Array:
 	return []
 
 func valore_tessera(p: int, t: int) -> float:
-	return maxf(valore_esorcismo(p, t), valore_aiuto(p, t))
+	var v := maxf(valore_esorcismo(p, t), valore_aiuto(p, t))
+	if m.s.get("luna", false):
+		# il Portale con un villico pronto da salvare
+		if t == int(m.s.get("portale", -1)) and m.villico_in_cima(t) != "":
+			v = maxf(v, 3.0 + 0.3 * float(m.s.villici_morti.size()))
+		# un ricettacolo vuoto e un cristallo in tasca
+		var ri := m.ricettacolo_di(t)
+		if ri >= 0 and not m.s.ricettacoli[ri] and int(m.plancia(p).get("cristalli", 0)) > 0:
+			v += 2.5
+	return v
+
+## Distanza fra due tessere (passi ortogonali)
+static func distanza(a: int, b: int) -> int:
+	return absi(a % 3 - b % 3) + absi(a / 3 - b / 3)
 
 # ------------------------------------------------------------ fase Yang
 
@@ -249,7 +298,7 @@ func _yang(p: int, o: Array) -> String:
 	if ids.has("mantra") or ids.has("n_mantra"):
 		var mx := 0.0
 		for x in m.fantasmi_in_gioco():
-			var r := Dati.resistenza(int(m.spazio(x[0], x[1]).c))
+			var r := m.requisito(x[0], x[1])
 			var tot := 0
 			for c in r:
 				tot += int(r[c])
@@ -261,6 +310,23 @@ func _yang(p: int, o: Array) -> String:
 		return "tasche"
 	if ids.has("prendi_poteri"):
 		return "prendi_poteri"
+	# White Moon: cristalli nei ricettacoli, artefatti e salvataggi
+	for x in o:
+		if String(x.id).begins_with("cr:"):
+			return x.id
+	if ids.has("art:polvere"):
+		return "art:polvere"
+	if ids.has("art:pozione"):
+		for q in m.taoisti_vivi():
+			if int(m.plancia(q).qi) <= 1:
+				return "art:pozione"
+		if not m.taoisti_morti().is_empty():
+			return "art:pozione"
+	if ids.has("salva") or ids.has("n_salva"):
+		var qui0 := int(b.tessera)
+		var ve0 := valore_esorcismo(p, qui0) if ids.has("esorcizza") else -1.0
+		if ve0 < 4.0:
+			return "salva" if ids.has("salva") else "n_salva"
 	for x in o:
 		if String(x.id).begins_with("b:"):
 			return x.id
@@ -279,10 +345,24 @@ func _yang(p: int, o: Array) -> String:
 			# meglio restare vicino agli angoli e lontano dal centro se non c'è altro da fare
 			if t == 4:
 				v -= 0.3
-			v += _posizione(p, t) * 0.12
+			v += _posizione(p, t) * P.pos
 			if v > bv:
 				bv = v
 				best = x.id
+		# con un villico sulle spalle, verso il Portale
+		var portale := int(m.s.get("portale", -1))
+		if portale >= 0:
+			for x in o:
+				if String(x.id).begins_with("mc:"):
+					var t := int(x.tessera_villico)
+					var v: float = valore_tessera(p, t) + _posizione(p, t) * P.pos
+					if distanza(t, portale) < distanza(int(b.tessera), portale):
+						v += 1.2
+						if t == portale:
+							v += 0.8
+					if v > bv:
+						bv = v
+						best = x.id
 		# Yin-Yang per un aiuto lontano molto prezioso
 		if ids.has("yy_aiuto"):
 			var mx := 0.0
@@ -314,6 +394,61 @@ func _yang(p: int, o: Array) -> String:
 	if ids.has("basta"):
 		return "basta"
 	return "fine" if ids.has("fine") else o[o.size() - 1].id
+
+func _suling(o: Array) -> String:
+	var best := "no"
+	var bv := 0.5
+	for x in o:
+		if not x.has("spazio"):
+			continue
+		var p := int(x.spazio[0])
+		var k := int(x.spazio[1])
+		var v := minaccia(p, k) * 0.6
+		if String(x.t).ends_with("(ricettacolo)"):
+			v += 3.0
+		if v > bv:
+			bv = v
+			best = x.id
+	return best
+
+func _barriera(o: Array) -> String:
+	var ids := []
+	for x in o:
+		ids.append(x.id)
+	if "dadi" in ids:
+		return "dadi"
+	if "salva" in ids:
+		return "salva"
+	return "nulla"
+
+func _uccidi_villico(o: Array) -> String:
+	# meglio sacrificare un villico la cui famiglia ha una maledizione leggera
+	var leggere := ["Li", "Long", "Chang", "Teng", "Weng", "Miao"]
+	for x in o:
+		var t := int(x.tessera)
+		var fam: String = Dati.villico(m.villico_in_cima(t)).get("famiglia", "")
+		if fam in leggere:
+			return x.id
+	return o[0].id
+
+func _pozione(o: Array) -> String:
+	for x in o:
+		if String(x.t).ends_with("torna in vita"):
+			return x.id
+	return _min_qi(o)
+
+func _kungfu(p: int, o: Array) -> String:
+	var best: String = o[0].id
+	var bv := -1.0
+	for x in o:
+		var g := m._bersagli_kungfu(p, String(x.id).substr(2))
+		var v := 0.0
+		for y in g:
+			v += minaccia(y[0], y[1])
+		if v > bv:
+			bv = v
+			best = x.id
+	return best
 
 ## Quanto è utile la posizione per i turni dopo (fantasmi minacciosi di fronte)
 func _posizione(p: int, t: int) -> float:
@@ -404,6 +539,8 @@ func _max_qi(o: Array) -> String:
 	var best: String = o[0].id
 	var mx := -1
 	for x in o:
+		if not x.has("plancia"):
+			continue
 		var q := int(x.plancia)
 		if int(m.plancia(q).qi) > mx:
 			mx = int(m.plancia(q).qi)
@@ -414,6 +551,8 @@ func _min_qi(o: Array) -> String:
 	var best: String = o[0].id
 	var mn := 99
 	for x in o:
+		if not x.has("plancia"):
+			continue
 		var q := int(x.plancia)
 		if int(m.plancia(q).qi) < mn:
 			mn = int(m.plancia(q).qi)
@@ -426,7 +565,7 @@ func _colore(o: Array) -> String:
 	for c in Dati.COLORI_TAO:
 		peso[c] = 0.1
 	for x in m.fantasmi_in_gioco():
-		var r := Dati.resistenza(int(m.spazio(x[0], x[1]).c))
+		var r := m.requisito(x[0], x[1])
 		for c in r:
 			peso[c] = float(peso[c]) + float(r[c]) * (0.5 + 0.1 * minaccia(x[0], x[1]))
 	var p := int(m.s.domanda.chi)
@@ -654,7 +793,7 @@ func valuta() -> float:
 		# il Cerchio vale per ogni fantasma del suo colore in gioco
 		v += 3.0
 		for x in m.fantasmi_in_gioco():
-			if Dati.resistenza(int(m.spazio(x[0], x[1]).c)).has(m.s.cerchio):
+			if m.requisito(x[0], x[1]).has(m.s.cerchio):
 				v += 4.0
 	v += 6.0 * int(m.s.buddha_tempio) * 0.0
 	return v

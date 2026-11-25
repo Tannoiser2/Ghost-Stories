@@ -58,13 +58,13 @@ def traduci(card, nome, testo_scuro):
 dati = json.load(open(R + '/assets/dati/fantasmi.json', encoding='utf-8'))
 foglio = apri('aSbCd9x')  # 55 fantasmi del gioco base (10 x 7, carte 350 x 544)
 for g in dati['fantasmi']:
-    i = g['n'] - 1
+    i = g.get('foglio') if g.get('foglio') is not None else g['n'] - 1
     r, c = divmod(i, 10)
     card = foglio.crop((c * 350, r * 544, (c + 1) * 350, (r + 1) * 544))
     salva(traduci(card, g['nome'], g['colore'] == 'giallo'), f"assets/carte/fantasma_{g['n']:02d}.webp")
 foglio = apri('GF67QEw')  # incarnazioni di Wu-Feng (8 x 3)
-for k, g in enumerate(dati['incarnazioni']):
-    r, c = divmod(k, 8)
+for g in dati['incarnazioni']:
+    r, c = divmod(g['foglio'], 8)
     card = foglio.crop((c * 350, r * 544, (c + 1) * 350, (r + 1) * 544))
     salva(traduci(card, g['nome'], g['colore_banda'] == 'giallo'), f"assets/carte/fantasma_{g['n']:02d}.webp")
 salva(apri('8ii7Ey1').convert('RGB'), 'assets/carte/dorso_fantasma.webp')
@@ -77,6 +77,7 @@ TESSERE = {
     'tempio': ('mBPesrm', 'z7fRo2g'), 'cerchio': ('O8tXjRn', 'b9wIlwA'),
     'stregone': ('k15DTSF', 'G1fULFl'), 'cimitero': ('dEJfhZW', 'MEgNZA9'),
     'guardiano': ('eOfUMms', 'KDYPsFb'),
+    'kungfu': ('gX4LPaj', 'y44aumX'),
 }
 for k, (a, b) in TESSERE.items():
     salva(apri(a).convert('RGB'), f'assets/villaggio/{k}.webp')
@@ -117,6 +118,75 @@ c1 = Image.open(R + '/assets/carte/fantasma_01.webp')
 salva(tondo(c1.crop((176 - 33, 470 - 33, 176 + 33, 470 + 33)), 120), 'assets/segnalini/infestante.webp', 92)
 pl = apri('NVs2ukc').convert('RGBA')
 salva(tondo(pl.crop((235 - 60, 570 - 60, 235 + 60, 570 + 60)), 120), 'assets/segnalini/buddha.webp', 92)
+
+# ------------------------------------------------------------------ White Moon: villici, artefatti, Su-Ling, cristalli
+FONT_CORSIVO = R + '/assets/font/AlegreyaSans-BoldItalic.ttf'
+foglio = apri('A8ta5sS').convert('RGB')  # 6 x 5 tessere 300 x 300
+for v in dati['villici']:
+    r, c = divmod(v['foglio'], 6)
+    t = foglio.crop((c * 300, r * 300, (c + 1) * 300, (r + 1) * 300))
+    a = np.array(t)
+    y0, y1, x0, x1 = 56, 84, 8, 150
+    lum = a[y0:y1, x0:x1].astype(int).mean(axis=2)
+    mask = np.zeros(a.shape[:2], np.uint8)
+    mask[y0:y1, x0:x1] = (lum < 95).astype(np.uint8) * 255
+    mask = cv2.dilate(mask, np.ones((3, 3), np.uint8), iterations=2)
+    a = cv2.inpaint(a, mask, 5, cv2.INPAINT_TELEA)
+    im = Image.fromarray(a)
+    d = ImageDraw.Draw(im)
+    f = ImageFont.truetype(FONT_CORSIVO, 24)
+    d.text((17, 57), v['ruolo'], font=f, fill=(25, 20, 15))
+    salva(im, f"assets/villici/{v['id']}.webp")
+salva(apri('iBaedNB').convert('RGB'), 'assets/villici/dorso.webp')
+
+def scontorna(im, soglia=232):
+    """Toglie lo sfondo bianco (o nero pieno) partendo dai bordi."""
+    im = im.convert('RGBA')
+    a = np.array(im)
+    rgb = a[:, :, :3].astype(int)
+    fondo = ((rgb.min(axis=2) > soglia) | (rgb.max(axis=2) < 12)).astype(np.uint8)
+    n, lab = cv2.connectedComponents(fondo)
+    bordo = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])))
+    via = np.isin(lab, [b for b in bordo if b != 0 or fondo[0, 0]])
+    via &= fondo.astype(bool)
+    a[via, 3] = 0
+    return Image.fromarray(a)
+
+ARTEFATTI = {'fuoco': ('GS9lcCV', (520, 0, 1024, 1024)), 'pergamena': ('M108zpb', (0, 0, 640, 580)),
+             'artiglio': ('T3q35Qd', (0, 0, 560, 1024)), 'spada': ('TdSEkfu', (0, 0, 560, 1024)),
+             'pozione': ('X6lcPC6', (0, 0, 580, 1024)), 'armatura': ('h19psmk', (400, 380, 1024, 1024)),
+             'scudo': ('sT1cAoD', (420, 360, 1024, 1024)), 'polvere': ('u1K3FjL', (460, 0, 1024, 580))}
+for k, (img, box) in ARTEFATTI.items():
+    im = scontorna(apri(img).convert('RGB').crop(box))
+    # resta solo il pezzo più grande (via i lembi dell'altro artefatto)
+    a = np.array(im)
+    n, lab, st, _ = cv2.connectedComponentsWithStats((a[:, :, 3] > 0).astype(np.uint8))
+    if n > 1:
+        big = 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA]))
+        a[lab != big, 3] = 0
+        im = Image.fromarray(a)
+    bb = im.getbbox()
+    if bb:
+        im = im.crop(bb)
+    im.thumbnail((256, 256))
+    salva(im, f'assets/artefatti/{k}.webp', 92)
+su = scontorna(apri('uEqKOG8').convert('RGB'))
+salva(su, 'assets/segnalini/suling.webp', 92)
+# cristallo di luna e portale disegnati (nessun simbolo dei font)
+cr = Image.new('RGBA', (128, 128), (0, 0, 0, 0))
+dd = ImageDraw.Draw(cr)
+dd.polygon([(64, 6), (110, 44), (64, 122), (18, 44)], fill=(150, 215, 255, 255), outline=(235, 250, 255, 255))
+dd.polygon([(64, 6), (82, 44), (64, 122), (46, 44)], fill=(195, 235, 255, 255))
+dd.line([(18, 44), (110, 44)], fill=(235, 250, 255, 255), width=3)
+salva(cr, 'assets/segnalini/cristallo.webp', 92)
+po = Image.new('RGBA', (128, 128), (0, 0, 0, 0))
+dd = ImageDraw.Draw(po)
+dd.ellipse((10, 10, 118, 118), outline=(230, 230, 240, 255), width=14)
+dd.ellipse((30, 30, 98, 98), fill=(120, 170, 255, 160))
+dd.rectangle((4, 100, 124, 124), fill=(200, 200, 210, 255))
+salva(po, 'assets/segnalini/portale.webp', 92)
+salva(apri('02BajLF').convert('RGB'), 'assets/img/cimitero_villici.webp')
+salva(apri('WG08vFI').convert('RGB'), 'assets/img/rifugio.webp')
 
 # ------------------------------------------------------------------ copertina per la ludoteca
 cop = Image.open(f'{IMG}/httpiimgurcomSkwihoHjpg.jpg').convert('RGB')

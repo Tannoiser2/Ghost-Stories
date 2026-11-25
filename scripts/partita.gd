@@ -23,6 +23,9 @@ var ritmo := 0.7                  # secondi tra una mossa del computer e l'altra
 var segui := true
 
 var tavolo: Tavolo
+var vista: Vista3D = null
+var in_3d := true
+var _area := Rect2()
 var pan_sx: PanelContainer
 var box_schede: BoxContainer
 var pan_dx: PanelContainer
@@ -237,12 +240,12 @@ func _costruisci_pannelli() -> void:
 	comandi = HBoxContainer.new()
 	comandi.add_theme_constant_override("separation", 8)
 	add_child(comandi)
-	for c in [["Centra", func(): tavolo.adatta()], ["Ruota a sinistra", func(): tavolo.ruota_di(-PI / 2.0)],
-			["Ruota a destra", func(): tavolo.ruota_di(PI / 2.0)], ["Segui il turno: sì", _cambia_segui],
+	for c in [["Vista 2D", _cambia_vista], ["Centra", _centra], ["Ruota a sinistra", func(): _ruota(-PI / 2.0)],
+			["Ruota a destra", func(): _ruota(PI / 2.0)], ["Segui il turno: sì", _cambia_segui],
 			["Regole", _mostra_regole], ["Menu", func(): esci.emit()]]:
 		var b := Stile.bottone(c[0], 19)
 		b.custom_minimum_size = Vector2(0, 42)
-		b.pressed.connect(c[1].bind(b) if c[0].begins_with("Segui") else c[1])
+		b.pressed.connect(c[1].bind(b) if c[0].begins_with("Segui") or c[0].begins_with("Vista") else c[1])
 		comandi.add_child(b)
 	# carta ingrandita
 	zoom_carta = PanelContainer.new()
@@ -275,11 +278,51 @@ func _costruisci_pannelli() -> void:
 	toast_box.add_theme_constant_override("separation", 6)
 	add_child(toast_box)
 
+func _centra() -> void:
+	if in_3d and vista:
+		vista.centra()
+	else:
+		tavolo.adatta()
+
+func _ruota(d: float) -> void:
+	if in_3d and vista:
+		vista.ruota_di(d)
+	else:
+		tavolo.ruota_di(d)
+
+func _cambia_vista(b: Button) -> void:
+	in_3d = not in_3d
+	b.text = "Vista 2D" if in_3d else "Vista 3D"
+	_imposta_vista()
+
+func _imposta_vista() -> void:
+	if in_3d and vista == null:
+		vista = Vista3D.new()
+		vista.tavolo = tavolo
+		add_child(vista)
+		move_child(vista, tavolo.get_index() + 1)
+		vista.toccato.connect(_toccato)
+		vista.sopra.connect(_sopra)
+		if not s.is_empty():
+			vista._ultimo_evento = int(s.get("n_evento", 0))
+			if segui:
+				vista.ruota_verso(int(s.turno_di))
+				vista.yaw = vista.yaw_obiettivo
+	if vista:
+		vista.visible = in_3d
+		vista.position = _area.position
+		vista.size = _area.size
+	tavolo.visible = not in_3d
+	_versione_disegnata = -1
+	_aggiorna()
+
 func _cambia_segui(b: Button) -> void:
 	segui = not segui
 	b.text = "Segui il turno: " + ("sì" if segui else "no")
 	if segui and not s.is_empty():
 		tavolo.ruota_verso(int(s.turno_di))
+		if vista:
+			vista.ruota_verso(int(s.turno_di))
 
 func _verticale() -> bool:
 	return size.y > size.x * 1.05
@@ -309,6 +352,10 @@ func _riposiziona() -> void:
 		pan_dx.size = Vector2(dx, H - 20)
 		area = Rect2(sx + 20, 0, W - sx - dx - 40, H)
 	tavolo.area_utile = Rect2(area.position + Vector2(0, 60), area.size - Vector2(0, 120))
+	_area = area
+	if vista:
+		vista.position = area.position
+		vista.size = area.size
 	barra_pan.position = Vector2(area.position.x + 10, area.position.y + 8)
 	barra_pan.size = Vector2(area.size.x - 20, 46)
 	comandi.position = Vector2(area.position.x + 10, area.end.y - 54)
@@ -327,7 +374,7 @@ func _riposiziona() -> void:
 		regole.size = size
 	tavolo.adatta()
 	_versione_disegnata = -1
-	_aggiorna()
+	_imposta_vista()
 
 func _orientamento_schede(orizzontale: bool) -> void:
 	var vuole_h := orizzontale
@@ -353,6 +400,10 @@ func _aggiorna() -> void:
 	for p in 4:
 		et[p] = _nome_posto(p)
 	tavolo.etichette = et
+	if vista and in_3d:
+		vista.etichette = et
+		vista.evidenzia = tavolo.evidenzia
+		vista.aggiorna(s)
 	_eventi()
 	if _versione_disegnata == versione:
 		return
@@ -521,6 +572,9 @@ func _domanda() -> void:
 		if o.has("tessera") or o.has("spazio") or o.has("plancia"):
 			con_posto.append(o)
 	tavolo.evidenzia = con_posto if mio else []
+	if vista and in_3d:
+		vista.evidenzia = tavolo.evidenzia
+		vista._aggiorna_evidenze()
 	if not mio:
 		return
 	_suono("tocca")
@@ -663,6 +717,8 @@ func _eventi() -> void:
 			"turno":
 				if segui and s.plance[int(e.p)].taoista:
 					tavolo.ruota_verso(int(e.p))
+					if vista:
+						vista.ruota_verso(int(e.p))
 
 func _mostra_banner(c: int) -> void:
 	banner.texture = Stile.carta(c)

@@ -764,6 +764,172 @@
     "qi_yy"
    ],
    "permanente": []
+  },
+  {
+   "n": 72,
+   "nome": "Ratto Mannaro",
+   "originale": "Wererat",
+   "colore": "giallo",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 59
+  },
+  {
+   "n": 73,
+   "nome": "Signore dei Parassiti",
+   "originale": "Vermin Lord",
+   "colore": "giallo",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [
+    "cristallo"
+   ],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 60
+  },
+  {
+   "n": 74,
+   "nome": "Serpe Mannara",
+   "originale": "Weresnake",
+   "colore": "blu",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 61
+  },
+  {
+   "n": 75,
+   "nome": "Regina Naga",
+   "originale": "Naga Queen",
+   "colore": "blu",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [
+    "cristallo"
+   ],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 62
+  },
+  {
+   "n": 76,
+   "nome": "Cinghiale Mannaro",
+   "originale": "Wereboar",
+   "colore": "verde",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 63
+  },
+  {
+   "n": 77,
+   "nome": "Zannuto",
+   "originale": "Razorback",
+   "colore": "verde",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [
+    "cristallo"
+   ],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 64
+  },
+  {
+   "n": 78,
+   "nome": "Tigre Mannara",
+   "originale": "Weretiger",
+   "colore": "rosso",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 65
+  },
+  {
+   "n": 79,
+   "nome": "Zanne d'Argento",
+   "originale": "Silver Fangs",
+   "colore": "rosso",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [
+    "cristallo"
+   ],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 66
+  },
+  {
+   "n": 80,
+   "nome": "Lupo Mannaro",
+   "originale": "Werewolf",
+   "colore": "nero",
+   "resistenza": 2,
+   "arrivo": [
+    "fantasma"
+   ],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 67
+  },
+  {
+   "n": 81,
+   "nome": "Cacciatore Grigio",
+   "originale": "Grey Hunter",
+   "colore": "nero",
+   "resistenza": 3,
+   "arrivo": [
+    "divora"
+   ],
+   "turno": [
+    "divoratore"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": [],
+   "espansione": "luna",
+   "foglio": 68
   }
  ],
  "incarnazioni": [
@@ -783,7 +949,8 @@
     "ululante"
    ],
    "incarnazione": true,
-   "descrizione": "Entrando porta in gioco un fantasma. Si può esorcizzare solo se lo spazio di fronte, sulla plancia opposta, è libero."
+   "descrizione": "Entrando porta in gioco un fantasma. Si può esorcizzare solo se lo spazio di fronte, sulla plancia opposta, è libero.",
+   "foglio": 0
   },
   {
    "n": 57,
@@ -801,7 +968,8 @@
     "inafferrabile"
    ],
    "incarnazione": true,
-   "descrizione": "Entrando fa tirare il dado della maledizione. Si può esorcizzare solo se si trova su uno spazio con un Buddha (portato lì col Padiglione o arrivato su un Buddha)."
+   "descrizione": "Entrando fa tirare il dado della maledizione. Si può esorcizzare solo se si trova su uno spazio con un Buddha (portato lì col Padiglione o arrivato su un Buddha).",
+   "foglio": 1
   },
   {
    "n": 58,
@@ -822,7 +990,8 @@
    ],
    "permanente": [],
    "incarnazione": true,
-   "descrizione": "Conta come fantasma nero. Esorcizzato, si tira il dado della maledizione."
+   "descrizione": "Conta come fantasma nero. Esorcizzato, si tira il dado della maledizione.",
+   "foglio": 2
   },
   {
    "n": 59,
@@ -840,7 +1009,8 @@
    ],
    "permanente": [],
    "incarnazione": true,
-   "descrizione": "Tormentatore: tira il dado della maledizione a ogni fase Yin. Esorcizzato, si tira ancora il dado."
+   "descrizione": "Tormentatore: tira il dado della maledizione a ogni fase Yin. Esorcizzato, si tira ancora il dado.",
+   "foglio": 3
   },
   {
    "n": 60,
@@ -856,7 +1026,8 @@
     "nopoteri"
    ],
    "incarnazione": true,
-   "descrizione": "Finché resta in gioco nessun Taoista può usare il proprio potere, nemmeno con i segnalini potere neutri."
+   "descrizione": "Finché resta in gioco nessun Taoista può usare il proprio potere, nemmeno con i segnalini potere neutri.",
+   "foglio": 4
   },
   {
    "n": 61,
@@ -874,7 +1045,8 @@
    "esorcismo": [],
    "permanente": [],
    "incarnazione": true,
-   "descrizione": "Entrando e a ogni fase Yin della sua plancia, ogni Taoista scarta un segnalino Tao, se ne ha."
+   "descrizione": "Entrando e a ogni fase Yin della sua plancia, ogni Taoista scarta un segnalino Tao, se ne ha.",
+   "foglio": 5
   },
   {
    "n": 62,
@@ -890,7 +1062,8 @@
    "esorcismo": [],
    "permanente": [],
    "incarnazione": true,
-   "descrizione": "Finché resta in gioco i Taoisti non possono usare i segnalini Tao (il Cerchio di Preghiera funziona)."
+   "descrizione": "Finché resta in gioco i Taoisti non possono usare i segnalini Tao (il Cerchio di Preghiera funziona).",
+   "foglio": 6
   },
   {
    "n": 63,
@@ -906,7 +1079,8 @@
    "esorcismo": [],
    "permanente": [],
    "incarnazione": true,
-   "descrizione": "Entrando cattura un dado Tao e lo tiene finché non viene esorcizzato."
+   "descrizione": "Entrando cattura un dado Tao e lo tiene finché non viene esorcizzato.",
+   "foglio": 7
   },
   {
    "n": 64,
@@ -922,7 +1096,8 @@
    "esorcismo": [],
    "permanente": [],
    "incarnazione": true,
-   "descrizione": "Un infestatore con resistenza 4."
+   "descrizione": "Un infestatore con resistenza 4.",
+   "foglio": 8
   },
   {
    "n": 65,
@@ -946,7 +1121,122 @@
     "bianco_nullo"
    ],
    "incarnazione": true,
-   "descrizione": "Conta come fantasma nero. Entrando scarta il segnalino del Cerchio di Preghiera. Finché resta in gioco le facce bianche dei dadi Tao non valgono."
+   "descrizione": "Conta come fantasma nero. Entrando scarta il segnalino del Cerchio di Preghiera. Finché resta in gioco le facce bianche dei dadi Tao non valgono.",
+   "foglio": 9
+  },
+  {
+   "n": 82,
+   "nome": "Vorace",
+   "originale": "Voracious",
+   "colore": "rosso",
+   "resistenza": 4,
+   "colore_banda": "rosso",
+   "arrivo": [
+    "uccidi_villico"
+   ],
+   "turno": [
+    "uccidi_villico"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Entrando, e a ogni fase Yin della sua plancia, uccide un villico scelto dai giocatori fra quelli visibili.",
+   "espansione": "luna",
+   "foglio": 12
+  },
+  {
+   "n": 83,
+   "nome": "Guardiano della Porta",
+   "originale": "Gate Keeper",
+   "colore": "giallo",
+   "resistenza": 5,
+   "colore_banda": "giallo",
+   "arrivo": [
+    "via_portale"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Finché resta in gioco il Portale è tolto dal villaggio: non si possono mettere in salvo villici.",
+   "espansione": "luna",
+   "foglio": 13
+  },
+  {
+   "n": 84,
+   "nome": "Ondina Ululante",
+   "originale": "Howling Ondine",
+   "colore": "blu",
+   "resistenza": 5,
+   "colore_banda": "blu",
+   "arrivo": [
+    "via_suling"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Finché resta in gioco Su-Ling è tolta dal villaggio.",
+   "espansione": "luna",
+   "foglio": 14
+  },
+  {
+   "n": 85,
+   "nome": "Signore delle Radici",
+   "originale": "Root Master",
+   "colore": "verde",
+   "resistenza": 5,
+   "colore_banda": "verde",
+   "arrivo": [
+    "tutti_a_terra"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Entrando getta a terra tutti i Taoisti: il loro prossimo movimento serve a rialzarsi.",
+   "espansione": "luna",
+   "foglio": 15
+  },
+  {
+   "n": 86,
+   "nome": "Mutaforma",
+   "originale": "Shapeshifter",
+   "colore": "plancia",
+   "resistenza": 4,
+   "colore_banda": "nero",
+   "arrivo": [
+    "fantasma"
+   ],
+   "turno": [
+    "muta"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Ha il colore della plancia su cui si trova (resistenza 4). Entrando porta in gioco un fantasma. A ogni fase Yin della sua plancia si sposta in senso orario sul primo spazio libero.",
+   "espansione": "luna",
+   "foglio": 16
+  },
+  {
+   "n": 87,
+   "nome": "Custode del Tempo",
+   "originale": "Time Keeper",
+   "colore": "nero",
+   "resistenza": 4,
+   "colore_banda": "nero",
+   "arrivo": [
+    "via_due"
+   ],
+   "turno": [
+    "tempo"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Entrando toglie dal gioco le ultime 2 carte del mazzo. A ogni fase Yin della sua plancia porta in gioco un fantasma.",
+   "espansione": "luna",
+   "foglio": 17
   }
  ],
  "villaggio": {
@@ -988,12 +1278,17 @@
   "cimitero": {
    "nome": "Cimitero",
    "originale": "Cemetery",
-   "aiuto": "Riporta in vita un Taoista morto con 2 Qi sul Cimitero, poi tira il dado della maledizione."
+   "aiuto": "Riporta in vita un Taoista morto con 2 Qi (oppure, con White Moon, un villico ucciso) sul Cimitero, poi tira il dado della maledizione."
   },
   "guardiano": {
    "nome": "Ronda del Guardiano Notturno",
    "originale": "Night Watchman's Beat",
    "aiuto": "Tutte le figurine infestanti di una plancia a scelta tornano indietro di un passo, sulla carta."
+  },
+  "kungfu": {
+   "nome": "Scuola di Kung-Fu",
+   "originale": "Kung-Fu School",
+   "aiuto": "Esorcismo solitario contro TUTTI i fantasmi del colore della tua plancia oppure contro TUTTI i fantasmi neri (non le incarnazioni). Solo dadi, i tuoi Tao e i tuoi cristalli; nessuna ricompensa né maledizione."
   }
  },
  "poteri": {
@@ -1028,6 +1323,296 @@
   "verde_1": {
    "nome": "Prediletto degli Dei",
    "desc": "Puoi ritirare una volta i dadi Tao di un esorcismo o di un aiuto, e anche il dado della maledizione (vale il secondo tiro)."
+  }
+ },
+ "villici": [
+  {
+   "id": "chang",
+   "famiglia": "Chang",
+   "originale": "Little",
+   "ruolo": "Piccolo",
+   "foglio": 0
+  },
+  {
+   "id": "hua_madre",
+   "famiglia": "Hua",
+   "originale": "Mother",
+   "ruolo": "Madre",
+   "foglio": 1
+  },
+  {
+   "id": "hua_figlio",
+   "famiglia": "Hua",
+   "originale": "Son",
+   "ruolo": "Figlio",
+   "foglio": 2
+  },
+  {
+   "id": "hua_padre",
+   "famiglia": "Hua",
+   "originale": "Father",
+   "ruolo": "Padre",
+   "foglio": 3
+  },
+  {
+   "id": "li_figlia",
+   "famiglia": "Li",
+   "originale": "Daughter",
+   "ruolo": "Figlia",
+   "foglio": 4
+  },
+  {
+   "id": "li_padre",
+   "famiglia": "Li",
+   "originale": "Father",
+   "ruolo": "Padre",
+   "foglio": 5
+  },
+  {
+   "id": "li_madre",
+   "famiglia": "Li",
+   "originale": "Mother",
+   "ruolo": "Madre",
+   "foglio": 6
+  },
+  {
+   "id": "long",
+   "famiglia": "Long",
+   "originale": "Granny",
+   "ruolo": "Nonna",
+   "foglio": 7
+  },
+  {
+   "id": "miao_fratello",
+   "famiglia": "Miao",
+   "originale": "Brother",
+   "ruolo": "Fratello",
+   "foglio": 12
+  },
+  {
+   "id": "miao_sorella",
+   "famiglia": "Miao",
+   "originale": "Sister",
+   "ruolo": "Sorella",
+   "foglio": 13
+  },
+  {
+   "id": "sheng_padre",
+   "famiglia": "Sheng",
+   "originale": "Father",
+   "ruolo": "Padre",
+   "foglio": 14
+  },
+  {
+   "id": "sheng_madre",
+   "famiglia": "Sheng",
+   "originale": "Mother",
+   "ruolo": "Madre",
+   "foglio": 15
+  },
+  {
+   "id": "sun_madre",
+   "famiglia": "Sun",
+   "originale": "Mother",
+   "ruolo": "Madre",
+   "foglio": 16
+  },
+  {
+   "id": "sun_figlia",
+   "famiglia": "Sun",
+   "originale": "Daughter",
+   "ruolo": "Figlia",
+   "foglio": 17
+  },
+  {
+   "id": "sun_padre",
+   "famiglia": "Sun",
+   "originale": "Father",
+   "ruolo": "Padre",
+   "foglio": 18
+  },
+  {
+   "id": "teng",
+   "famiglia": "Teng",
+   "originale": "Old",
+   "ruolo": "Vecchio",
+   "foglio": 19
+  },
+  {
+   "id": "weng",
+   "famiglia": "Weng",
+   "originale": "Lady",
+   "ruolo": "Signora",
+   "foglio": 20
+  },
+  {
+   "id": "wu_madre",
+   "famiglia": "Wu",
+   "originale": "Mother",
+   "ruolo": "Madre",
+   "foglio": 21
+  },
+  {
+   "id": "wu_padre",
+   "famiglia": "Wu",
+   "originale": "Father",
+   "ruolo": "Padre",
+   "foglio": 22
+  },
+  {
+   "id": "xiang_madre",
+   "famiglia": "Xiang",
+   "originale": "Mother",
+   "ruolo": "Madre",
+   "foglio": 23
+  },
+  {
+   "id": "xiang_figlio",
+   "famiglia": "Xiang",
+   "originale": "Son",
+   "ruolo": "Figlio",
+   "foglio": 24
+  },
+  {
+   "id": "zhou_madre",
+   "famiglia": "Zhou",
+   "originale": "Mother",
+   "ruolo": "Madre",
+   "foglio": 25
+  },
+  {
+   "id": "zhou_padre",
+   "famiglia": "Zhou",
+   "originale": "Father",
+   "ruolo": "Padre",
+   "foglio": 26
+  },
+  {
+   "id": "zhou_figlio",
+   "famiglia": "Zhou",
+   "originale": "Son",
+   "ruolo": "Figlio",
+   "foglio": 27
+  }
+ ],
+ "famiglie": {
+  "Long": {
+   "membri": 1,
+   "maledizione": "Un Tao verde esce dal gioco.",
+   "ricompensa": "Artefatto: Pozione della Vita.",
+   "m": "tao_verde",
+   "r": "pozione"
+  },
+  "Chang": {
+   "membri": 1,
+   "maledizione": "Un Tao rosso esce dal gioco.",
+   "ricompensa": "Artefatto: Polvere di Luna.",
+   "m": "tao_rosso",
+   "r": "polvere"
+  },
+  "Teng": {
+   "membri": 1,
+   "maledizione": "Un Tao giallo esce dal gioco.",
+   "ricompensa": "Artefatto: Pergamena dell'Unità.",
+   "m": "tao_giallo",
+   "r": "pergamena"
+  },
+  "Weng": {
+   "membri": 1,
+   "maledizione": "Un Tao blu esce dal gioco.",
+   "ricompensa": "Artefatto: Fuoco d'Artificio.",
+   "m": "tao_blu",
+   "r": "fuoco"
+  },
+  "Miao": {
+   "membri": 2,
+   "maledizione": "Un Tao nero esce dal gioco.",
+   "ricompensa": "Artefatto: Scudo del Tempo.",
+   "m": "tao_nero",
+   "r": "scudo"
+  },
+  "Wu": {
+   "membri": 2,
+   "maledizione": "Un'incarnazione di Wu-Feng presa dalla scatola entra in gioco.",
+   "ricompensa": "I Buddha disponibili vanno sugli spazi liberi.",
+   "m": "incarnazione",
+   "r": "buddha"
+  },
+  "Xiang": {
+   "membri": 2,
+   "maledizione": "Muore un altro villico, scelto fra quelli visibili.",
+   "ricompensa": "Cinque Tao, uno per colore, divisi fra i Taoisti.",
+   "m": "villico",
+   "r": "cinque_tao"
+  },
+  "Sheng": {
+   "membri": 2,
+   "maledizione": "La tessera dove stava viene infestata.",
+   "ricompensa": "Artefatto: Artiglio Vendicativo.",
+   "m": "infesta",
+   "r": "artiglio"
+  },
+  "Sun": {
+   "membri": 3,
+   "maledizione": "Entra in gioco un fantasma.",
+   "ricompensa": "Artefatto: Armatura del Giusto.",
+   "m": "fantasma",
+   "r": "armatura"
+  },
+  "Li": {
+   "membri": 3,
+   "maledizione": "L'ultima carta del mazzo esce dal gioco.",
+   "ricompensa": "I Taoisti si dividono 3 Qi.",
+   "m": "ultima",
+   "r": "tre_qi"
+  },
+  "Zhou": {
+   "membri": 3,
+   "maledizione": "Un Taoista o una plancia neutra, a scelta, perde 1 Qi.",
+   "ricompensa": "La Barriera Mistica si attiva a fine turno.",
+   "m": "qi",
+   "r": "barriera"
+  },
+  "Hua": {
+   "membri": 3,
+   "maledizione": "Il Taoista di turno finisce a terra: il prossimo movimento serve a rialzarsi.",
+   "ricompensa": "Artefatto: Spada Divina.",
+   "m": "a_terra",
+   "r": "spada"
+  }
+ },
+ "artefatti": {
+  "pozione": {
+   "nome": "Pozione della Vita",
+   "desc": "Nella fase Yang: scartala e un Taoista guadagna 1 Qi (un morto torna in vita con 1 Qi sul Cimitero, senza dado), oppure un villico ucciso torna sul Cimitero."
+  },
+  "polvere": {
+   "nome": "Polvere di Luna",
+   "desc": "Nella fase Yang: scartala e prendi un Cristallo di Luna."
+  },
+  "pergamena": {
+   "nome": "Pergamena dell'Unità",
+   "desc": "Dopo il movimento: scartala e tutti gli altri Taoisti vivi vengono sulla tua tessera (in solitario: prendi i segnalini potere del centro)."
+  },
+  "fuoco": {
+   "nome": "Fuoco d'Artificio",
+   "desc": "Nella fase Yang: scartalo e ottieni l'aiuto di un'altra tessera senza andarci."
+  },
+  "artiglio": {
+   "nome": "Artiglio Vendicativo",
+   "desc": "Dopo un esorcismo fallito del tutto prendi un Tao del colore di un fantasma attaccato (una volta per turno)."
+  },
+  "armatura": {
+   "nome": "Armatura del Giusto",
+   "desc": "Ignori le abilità d'arrivo (pietra sinistra) dei fantasmi che entrano sulla tua plancia (non delle incarnazioni)."
+  },
+  "scudo": {
+   "nome": "Scudo del Tempo",
+   "desc": "Quando nel tuo turno peschi un fantasma del colore della tua plancia, va in fondo al mazzo e ne peschi un altro (non con le incarnazioni)."
+  },
+  "spada": {
+   "nome": "Spada Divina",
+   "desc": "In ogni tuo esorcismo un dado Tao è già sul bianco: tiri solo gli altri."
   }
  }
 }

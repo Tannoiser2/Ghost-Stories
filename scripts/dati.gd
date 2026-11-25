@@ -27,7 +27,7 @@ static func tutto() -> Dictionary:
 			carte[int(g["n"])] = g
 		for g in j["incarnazioni"]:
 			carte[int(g["n"])] = g
-		_d = {"carte": carte, "villaggio": j["villaggio"], "poteri": j["poteri"]}
+		_d = {"carte": carte, "villaggio": j["villaggio"], "poteri": j["poteri"], "villici": j.get("villici", []), "famiglie": j.get("famiglie", {}), "artefatti": j.get("artefatti", {})}
 	return _d
 
 static func carta(n: int) -> Dictionary:
@@ -36,11 +36,26 @@ static func carta(n: int) -> Dictionary:
 static func tessera(id: String) -> Dictionary:
 	return tutto()["villaggio"].get(id, {})
 
+static func villici() -> Array:
+	return tutto().get("villici", [])
+
+static func villico(id: String) -> Dictionary:
+	for v in villici():
+		if String(v.id) == id:
+			return v
+	return {}
+
+static func famiglia(nome: String) -> Dictionary:
+	return tutto().get("famiglie", {}).get(nome, {})
+
+static func artefatto(id: String) -> Dictionary:
+	return tutto().get("artefatti", {}).get(id, {})
+
 static func potere(chiave: String) -> Dictionary:
 	return tutto()["poteri"].get(chiave, {})
 
 static func e_incarnazione(n: int) -> bool:
-	return n >= 56
+	return (n >= 56 and n <= 65) or n >= 82
 
 ## Resistenza come dizionario colore -> quantità
 static func resistenza(n: int) -> Dictionary:

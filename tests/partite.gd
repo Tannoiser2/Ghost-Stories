@@ -7,6 +7,7 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:
 		n = int(args[0])
+	var luna := args.size() > 1 and args[1] == "luna"
 	var errori := 0
 	for livello in Dati.LIVELLI:
 		for tao in [1, 2, 3, 4]:
@@ -15,7 +16,7 @@ func _init() -> void:
 			var motivi := {}
 			for i in n:
 				var m := Motore.new()
-				m.nuova_partita({"livello": livello, "taoisti": tao, "seme": 1000 + i * 7 + tao})
+				m.nuova_partita({"livello": livello, "taoisti": tao, "seme": 1000 + i * 7 + tao, "luna_bianca": luna, "portale": ["centro", "lato", "angolo"][i % 3]})
 				var ia := IA.new(m)
 				var passi := 0
 				while not m.finita():

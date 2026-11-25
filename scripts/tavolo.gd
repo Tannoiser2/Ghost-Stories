@@ -317,7 +317,12 @@ func _disegna_evidenze() -> void:
 func cosa_in(schermo: Vector2) -> Dictionary:
 	if s.is_empty():
 		return {}
-	var w := mondo_da_schermo(schermo)
+	return cosa_in_mondo(mondo_da_schermo(schermo))
+
+## Che cosa c'è in un punto del tavolo (coordinate del mondo, usate anche dalla vista 3D)
+func cosa_in_mondo(w: Vector2) -> Dictionary:
+	if s.is_empty():
+		return {}
 	# tessere
 	if absf(w.x) <= T * 1.5 and absf(w.y) <= T * 1.5:
 		var c := int(floor((w.x + T * 1.5) / T))

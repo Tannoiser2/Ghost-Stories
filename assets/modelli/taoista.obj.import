@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://xmcysg58so8h"
+path="res://.godot/imported/taoista.obj-26e08a05c37279e8a539b3259403344f.mesh"
+
+[deps]
+
+files=["res://.godot/imported/taoista.obj-26e08a05c37279e8a539b3259403344f.mesh"]
+
+source_file="res://assets/modelli/taoista.obj"
+dest_files=["res://.godot/imported/taoista.obj-26e08a05c37279e8a539b3259403344f.mesh", "res://.godot/imported/taoista.obj-26e08a05c37279e8a539b3259403344f.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

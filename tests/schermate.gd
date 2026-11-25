@@ -39,6 +39,8 @@ func _vai() -> void:
 	main.ritmo = 0.0
 	main._inizia()
 	var p: Partita = main.partita
+	p.in_3d = false
+	p._imposta_vista()
 	# il computer gioca qualche turno, poi tocca al primo Taoista (sul dispositivo)
 	p.posti[0].tipo = "ia"
 	for i in 260:
@@ -52,8 +54,17 @@ func _vai() -> void:
 			break
 	p._versione_disegnata = -1
 	p._aggiorna()
-	await _attendi(30)
+	await _attendi(10)
+	await _foto("partita2d")
+	p.in_3d = true
+	p._imposta_vista()
+	await _attendi(40)
 	await _foto("partita")
+	p.vista.distanza = 7.0
+	p.vista.pitch = 0.55
+	p.vista.bersaglio = Vector3(0, 0, 1.0)
+	await _attendi(6)
+	await _foto("partita3d_vicino")
 	# un turno giocato con i pulsanti, come farebbe una persona
 	var ia := IA.new(p.m)
 	for passo in 6:
