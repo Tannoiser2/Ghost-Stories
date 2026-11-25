@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/portale.webp-1fa60a75b5b17ddf2dd3213b5a361dc0
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

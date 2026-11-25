@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/sun_padre.webp-adbfca1d0b49cb24eb8dbbacccb911
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/dorso.webp-8b5123e60c9cb36ab4e700a5b033d76f.c
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

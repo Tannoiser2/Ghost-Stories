@@ -98,4 +98,8 @@ Le plance senza Taoista sono neutre: hanno 3 Qi, i loro fantasmi agiscono ma non
 Iniziazione: 4 Qi, un Tao nero in più, si perde con 4 tessere infestate. Normale: 3 Qi, si perde con 3 tessere infestate. Incubo: come Normale ma con 4 incarnazioni (3 in uno o due Taoisti). Inferno: come Incubo e senza Yin-Yang all'inizio.
 
 [b]Comandi[/b]
+[b]Espansione White Moon[/b] (si sceglie nella nuova partita)
+Su ogni tessera, tranne quella del Portale, c'è una pila di villici. Chi sta sul Portale può usare la sua azione per metterne in salvo uno; muovendosi si può portare con sé il villico in cima alla pila di partenza (al massimo tre per tessera). Un fantasma che infesta una tessera con dei villici li uccide invece di infestarla; quando un infestatore avanza, il primo villico davanti a lui scappa di una tessera o muore. I nuovi divoratori uccidono un villico a ogni turno. Ogni villico morto applica la maledizione della sua famiglia; una famiglia salvata per intero dà la sua ricompensa (spesso un artefatto). Con dodici villici morti si perde.
+Dopo un evento negativo si può mettere Su-Ling davanti a un fantasma: ne blocca le abilità della pietra centrale. I Cristalli di Luna valgono come segnalini Tao di qualunque colore; posati nei quattro ricettacoli agli angoli (dalla tessera d'angolo, a fine turno) alzano la Barriera Mistica: ogni plancia salva un villico o tira quattro dadi contro i propri fantasmi. Nel punteggio contano anche i villici salvati e la posizione del Portale.
+
 Trascina per spostare il tavolo, rotella o due dita per ingrandire, tasto destro, Maiusc + trascinamento o due dita per ruotarlo. Tocca una carta per leggerla, una tessera per vedere il suo aiuto. Le scelte possibili si illuminano sul tavolo e compaiono nel pannello a destra."""

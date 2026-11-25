@@ -5,6 +5,7 @@ extends SceneTree
 var dir := "/tmp/schermate"
 var w := 1920
 var h := 1080
+var luna := false
 
 func _init() -> void:
 	var a := OS.get_cmdline_user_args()
@@ -12,6 +13,7 @@ func _init() -> void:
 		dir = a[0]
 		w = int(a[1])
 		h = int(a[2])
+	luna = a.size() >= 4 and a[3] == "luna"
 	DirAccess.make_dir_recursive_absolute(dir)
 	root.size = Vector2i(w, h)
 	DisplayServer.window_set_size(Vector2i(w, h))
@@ -33,6 +35,7 @@ func _vai() -> void:
 	root.add_child(main)
 	await _attendi(10)
 	await _foto("menu")
+	main.luna = luna
 	main._nuova()
 	await _attendi(5)
 	await _foto("impostazioni")

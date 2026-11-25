@@ -18,7 +18,14 @@ Si gioca su https://tannoiser2.github.io/Ghost-Stories/ (e nella ludoteca).
 - **Salvataggio** a ogni mossa sul dispositivo e una copia su Firebase (`ghoststories/salvataggi/<uid>`).
 - Tavolo 2D che si sposta, si ingrandisce e si ruota con mouse, rotella o con le dita (anche su iPad).
 
-Le espansioni White Moon e Black Secret sono nel modulo TTS ma non ancora implementate.
+- **Espansione White Moon**: villici e famiglie con maledizioni e ricompense, Portale, Su-Ling, Cristalli di Luna,
+  ricettacoli e Barriera Mistica, 8 artefatti, Scuola di Kung-Fu, 10 fantasmi e 6 incarnazioni nuove.
+- **Tavolo 3D** (predefinito, si passa al 2D con un tasto): miniature dei Taoisti colorate per plancia, spettri
+  trasparenti, incarnazioni con fiamme e luce, dadi Tao e della maledizione lanciati sul tavolo, fumo, scintille,
+  colonne di luce, lanterne e nebbia; si ruota e si ingrandisce anche con le dita.
+- IA con pesi tarati da migliaia di partite automatiche (`tests/taratura.gd`, verifica in `tests/convalida.gd`).
+
+L'espansione Black Secret (un giocatore nei panni di Wu-Feng) non è ancora implementata.
 
 ## Struttura
 

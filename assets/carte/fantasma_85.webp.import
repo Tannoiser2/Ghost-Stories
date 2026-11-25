@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/fantasma_85.webp-dfc9e530d269fc4fc3f91fe26d25
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

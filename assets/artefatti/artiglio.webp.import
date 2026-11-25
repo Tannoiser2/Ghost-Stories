@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/artiglio.webp-b11726d16f69c7a315f54d2bdcb886c
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

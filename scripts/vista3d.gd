@@ -43,6 +43,8 @@ var _ultimo_evento := 0
 var _mesh := {}
 var _mat := {}
 var _dadi := Node3D.new()
+var _luna := Node3D.new()           # White Moon: Portale, ricettacoli, villici, Su-Ling
+var _firma_luna := ""
 var _tocchi := {}
 var _gesto := {}
 var _premuto := false
@@ -72,6 +74,7 @@ func _ready() -> void:
 	mondo.add_child(_evid)
 	mondo.add_child(_gettoni)
 	mondo.add_child(_dadi)
+	mondo.add_child(_luna)
 	_aggiorna_camera()
 
 func _ambiente() -> void:
@@ -355,6 +358,7 @@ func aggiorna(st: Dictionary) -> void:
 	_aggiorna_taoisti(primo)
 	_aggiorna_buddha()
 	_aggiorna_gettoni()
+	_aggiorna_luna()
 	_aggiorna_evidenze()
 	_eventi()
 
@@ -677,6 +681,125 @@ func _aggiorna_gettoni() -> void:
 				_gettoni.add_child(_gettone("res://assets/segnalini/tao_%s.webp" % s.cerchio, _v3(tavolo.centro_tessera(t), 0.1) + Vector3(-0.6, 0, -0.6), 0.32))
 	for i in int(s.poteri_centro):
 		_gettoni.add_child(_gettone("res://assets/segnalini/potere.webp", _v3(tavolo.centro_tessera(4), 0.1 + i * 0.06) + Vector3(0.65, 0, -0.65), 0.3))
+
+## White Moon: si ricostruisce solo quando cambia qualcosa
+func _aggiorna_luna() -> void:
+	if not s.get("luna", false):
+		return
+	var ab := []
+	for v in s.villaggio:
+		ab.append(v.get("ab", []))
+	var firma := str([s.portale, s.ricettacoli, ab, s.suling, s.barriera])
+	if firma == _firma_luna:
+		return
+	_firma_luna = firma
+	for c in _luna.get_children():
+		c.queue_free()
+	# il Portale (porta della luna) sulla sua tessera
+	var pt := int(s.get("portale", -1))
+	if pt >= 0:
+		var pos := _v3(tavolo.centro_tessera(pt), 0.05)
+		var mp := StandardMaterial3D.new()
+		mp.albedo_color = Color(0.36, 0.38, 0.46)
+		mp.roughness = 0.85
+		mp.emission_enabled = true
+		mp.emission = Color(0.2, 0.3, 0.6)
+		mp.emission_energy_multiplier = 0.12
+		var porta := _miniatura("portale", 0.75, mp)
+		porta.position = pos + Vector3(0, 0, -0.78)
+		_luna.add_child(porta)
+		var luce := OmniLight3D.new()
+		luce.light_color = Color(0.55, 0.7, 1.0)
+		luce.light_energy = 0.35
+		luce.omni_range = 1.8
+		luce.position = pos + Vector3(0, 1.0, -0.4)
+		_luna.add_child(luce)
+	# i ricettacoli agli angoli esterni, con il cristallo che brilla se è pieno
+	var mr := StandardMaterial3D.new()
+	mr.albedo_color = Color(0.32, 0.3, 0.34)
+	mr.roughness = 0.85
+	for i in 4:
+		var t: int = [0, 2, 6, 8][i]
+		var dir := Vector2(-1 if t % 3 == 0 else 1, -1 if t < 3 else 1)
+		var pos := _v3(tavolo.centro_tessera(t) + dir * (Tavolo.T * 0.5 + 40), 0.0)
+		var ric := _miniatura("ricettacolo", 0.45, mr)
+		ric.position = pos
+		_luna.add_child(ric)
+		if s.ricettacoli[i]:
+			var mc := StandardMaterial3D.new()
+			mc.albedo_color = Color(0.55, 0.8, 1.0, 0.85)
+			mc.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			mc.emission_enabled = true
+			mc.emission = Color(0.4, 0.7, 1.0)
+			mc.emission_energy_multiplier = 0.9
+			var cr := _miniatura("cristallo", 0.42, mc)
+			cr.position = pos + Vector3(0, 0.4, 0)
+			cr.set_meta("gira", true)
+			_luna.add_child(cr)
+			var lc := OmniLight3D.new()
+			lc.light_color = Color(0.5, 0.75, 1.0)
+			lc.light_energy = 0.5
+			lc.omni_range = 1.6
+			lc.position = pos + Vector3(0, 0.8, 0)
+			_luna.add_child(lc)
+	# le pile dei villici: gettoni quadrati con il villico in cima scoperto
+	for t in 9:
+		var pila: Array = s.villaggio[t].get("ab", [])
+		var base := _v3(tavolo.centro_tessera(t) + Vector2(Tavolo.T * 0.5 - 52, Tavolo.T * 0.5 - 52), 0.06)
+		for j in pila.size():
+			var scat := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = Vector3(0.72, 0.07, 0.72)
+			scat.mesh = bm
+			var mb := StandardMaterial3D.new()
+			mb.albedo_color = Color(0.32, 0.22, 0.14)
+			scat.material_override = mb
+			scat.position = base + Vector3(0, j * 0.075, 0)
+			_luna.add_child(scat)
+			if j == pila.size() - 1:
+				var f := _piano(0.7, 0.7, _materiale_tex(Stile.tex("res://assets/villici/%s.webp" % pila[j])))
+				f.position = scat.position + Vector3(0, 0.04, 0)
+				_luna.add_child(f)
+	# Su-Ling: una figura di luce davanti allo spazio che protegge
+	if int(s.suling.p) >= 0:
+		var sp := tavolo.centro_spazio(int(s.suling.p), int(s.suling.k))
+		var verso := (sp - tavolo.centro_tessera(4)).normalized()
+		var pos := _v3(sp - verso * 260, 0.0)
+		var spr := Sprite3D.new()
+		spr.texture = Stile.tex("res://assets/segnalini/suling.webp")
+		spr.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+		spr.pixel_size = 0.0055
+		spr.position = pos + Vector3(0, 1.1, 0)
+		spr.modulate = Color(0.85, 0.92, 1.0, 0.92)
+		spr.shaded = false
+		spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+		_luna.add_child(spr)
+		var ls := OmniLight3D.new()
+		ls.light_color = Color(0.7, 0.85, 1.0)
+		ls.light_energy = 0.6
+		ls.omni_range = 2.2
+		ls.position = pos + Vector3(0, 1.2, 0)
+		_luna.add_child(ls)
+		_luna.add_child(_particelle_veli(Color(0.7, 0.85, 1.0, 0.5)))
+		_luna.get_child(_luna.get_child_count() - 1).position = pos + Vector3(0, 0.8, 0)
+	# la Barriera Mistica: una cupola di luce sul villaggio
+	if s.barriera:
+		var cup := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 4.2
+		sm.height = 4.2
+		sm.is_hemisphere = true
+		cup.mesh = sm
+		var mm := StandardMaterial3D.new()
+		mm.albedo_color = Color(0.5, 0.7, 1.0, 0.12)
+		mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mm.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mm.emission_enabled = true
+		mm.emission = Color(0.4, 0.6, 1.0)
+		mm.emission_energy_multiplier = 0.3
+		mm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		cup.material_override = mm
+		_luna.add_child(cup)
 
 func _gettone(tex: String, pos: Vector3, r: float) -> Node3D:
 	var n := Node3D.new()
@@ -1085,6 +1208,23 @@ func _eventi() -> void:
 			"risorge":
 				if _taoisti.has(int(e.p)):
 					_colonna_luce(_taoisti[int(e.p)].position, Color(0.6, 1.0, 0.8))
+			"uccidi":
+				var pv := _v3(tavolo.centro_tessera(int(e.t)), 0.3)
+				_fumo(pv, Color(0.55, 0.1, 0.1), 0.6, 40)
+				_lampo(pv + Vector3(0, 0.6, 0), Color(1.0, 0.2, 0.1), 1.2, 0.5)
+			"salva":
+				_colonna_luce(_v3(tavolo.centro_tessera(int(e.t)), 0.1), Color(0.55, 0.75, 1.0))
+			"ricettacolo":
+				var t: int = [0, 2, 6, 8][int(e.i)]
+				_scintille(_v3(tavolo.centro_tessera(t), 0.6), Color(0.5, 0.8, 1.0))
+			"barriera":
+				_lampo(Vector3(0, 3, 0), Color(0.5, 0.7, 1.0), 3.0, 1.5)
+				_impulso(Vector3.ZERO, Color(0.5, 0.75, 1.0))
+			"suling":
+				_scintille(_v3(tavolo.centro_spazio(int(e.p), int(e.s)), 1.0), Color(0.8, 0.9, 1.0))
+			"cristallo":
+				if _taoisti.has(int(e.p)):
+					_scintille(_taoisti[int(e.p)].position + Vector3(0, 1.0, 0), Color(0.5, 0.8, 1.0))
 			"mantra":
 				var pos2 := _v3(tavolo.centro_spazio(int(e.p), int(e.s)))
 				_scintille(pos2 + Vector3(0, 1.5, 0), Color(1.0, 0.95, 0.4))
@@ -1108,6 +1248,9 @@ func _process(d: float) -> void:
 		l.light_energy = float(l.get_meta("base")) * (0.88 + 0.12 * sin(_tempo * 7.0 + l.position.x) * sin(_tempo * 3.1 + l.position.z))
 	for l in get_tree().get_nodes_in_group("fiamme"):
 		l.light_energy = 1.3 + 0.5 * sin(_tempo * 11.0) * sin(_tempo * 4.3)
+	for c in _luna.get_children():
+		if c.has_meta("gira"):
+			c.rotation.y = _tempo * 0.8
 	var pulsa := 0.5 + 0.5 * sin(_tempo * 5.0)
 	for c in _evid.get_children():
 		c.position.y = 0.08 + 0.05 * pulsa

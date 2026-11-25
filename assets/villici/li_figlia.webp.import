@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/li_figlia.webp-8f83b44ffef2c72f4bea5cc347f68d
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

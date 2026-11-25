@@ -6,6 +6,8 @@ var schermo: Control
 var partita: Partita
 var livello := "iniziazione"
 var n_taoisti := 4
+var luna := false
+var portale := "centro"
 var controllo := ["locale", "ia", "ia", "ia"]
 var ritmo := 0.7
 var online := ""                 # "" sul dispositivo, "ospita" per chi apre la stanza
@@ -214,6 +216,28 @@ func _impostazioni(ospita: bool) -> void:
 		b.pressed.connect(func(): n_taoisti = n; _impostazioni(ospita))
 		hn.add_child(b)
 	v.add_child(Stile.paragrafo("Con meno di quattro Taoisti le plance libere diventano neutre e si ricevono i segnalini potere.", 17, Stile.TESTO_DEBOLE))
+	v.add_child(Stile.etichetta("Espansione", 26, Stile.ORO, Stile.titolo()))
+	var he := HBoxContainer.new()
+	he.add_theme_constant_override("separation", 8)
+	v.add_child(he)
+	for e in [[false, "Solo base"], [true, "White Moon"]]:
+		var b := Stile.bottone_scelta(e[1], luna == e[0], 22)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.pressed.connect(func(): luna = e[0]; _impostazioni(ospita))
+		he.add_child(b)
+	if luna:
+		v.add_child(Stile.paragrafo("Villici da portare al Portale, Su-Ling, Cristalli di Luna, Barriera Mistica, artefatti e 16 nuove carte. Si perde anche con 12 villici morti.", 17, Stile.TESTO_DEBOLE))
+		var hp := HBoxContainer.new()
+		hp.add_theme_constant_override("separation", 8)
+		v.add_child(hp)
+		var lp := Stile.etichetta("Portale", 22)
+		lp.custom_minimum_size.x = 130
+		hp.add_child(lp)
+		for e in [["centro", "Al centro"], ["lato", "Sul lato (+2)"], ["angolo", "In un angolo (+4)"]]:
+			var b := Stile.bottone_scelta(e[1], portale == e[0], 18)
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			b.pressed.connect(func(): portale = e[0]; _impostazioni(ospita))
+			hp.add_child(b)
 	v.add_child(Stile.etichetta("Chi gioca ogni Taoista", 26, Stile.ORO, Stile.titolo()))
 	var scelte := [["locale", "Tu"], ["ia", "Computer"]]
 	if ospita:
@@ -270,7 +294,7 @@ func _posti() -> Array:
 
 func _inizia() -> void:
 	var p := _posti()
-	_avvia_partita(func(pt: Partita): pt.avvia({"livello": livello, "taoisti": n_taoisti}, p))
+	_avvia_partita(func(pt: Partita): pt.avvia({"livello": livello, "taoisti": n_taoisti, "luna_bianca": luna, "portale": portale}, p))
 
 func _avvia_partita(cosa: Callable) -> void:
 	_pulisci()
@@ -372,7 +396,7 @@ func _inizia_online() -> void:
 				k += 1
 			else:
 				p[i].tipo = "ia"
-	_avvia_partita(func(pt: Partita): pt.avvia({"livello": livello, "taoisti": n_taoisti}, p))
+	_avvia_partita(func(pt: Partita): pt.avvia({"livello": livello, "taoisti": n_taoisti, "luna_bianca": luna, "portale": portale}, p))
 
 # ------------------------------------------------------------------ online: chi entra
 

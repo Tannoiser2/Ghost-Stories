@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/sheng_madre.webp-856c4162d0ce8d20a5e71a14020d
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

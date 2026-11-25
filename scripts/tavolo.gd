@@ -161,6 +161,11 @@ func _disegna_plancia(p: int) -> void:
 			_ombra_tonda(bp, 66)
 			draw_texture_rect(bt, Rect2(bp - Vector2(66, 66), Vector2(132, 132)), false, Color(1.0, 0.86, 0.45))
 			draw_arc(bp, 66, 0, TAU, 40, Stile.ORO, 6)
+		if s.get("luna", false) and int(s.suling.p) == p and int(s.suling.k) == k:
+			var sl := Vector2(SPAZI_X[k] + 120, ICONA_INFESTANTE_Y + 10)
+			var pulsa := 0.5 + 0.5 * sin(_tempo * 2.4)
+			draw_circle(sl, 92 + 8 * pulsa, Color(0.7, 0.85, 1.0, 0.18))
+			draw_texture_rect(Stile.tex("res://assets/segnalini/suling.webp"), Rect2(sl - Vector2(56, 86), Vector2(112, 172)), false)
 		var inf := int(sp.inf)
 		if c > 0 and inf >= 0:
 			var it := Stile.tex("res://assets/segnalini/infestante.webp")
@@ -224,11 +229,47 @@ func _disegna_tessera(t: int) -> void:
 				_ombra_tonda(cp, 36)
 				draw_texture_rect(Stile.tex("res://assets/segnalini/tao_%s.webp" % s.cerchio), Rect2(cp - Vector2(36, 36), Vector2(72, 72)), false)
 				draw_arc(cp, 36, 0, TAU, 24, Stile.ORO, 4)
+	if s.get("luna", false):
+		_disegna_luna_tessera(t, c)
 	if t == 4 and int(s.poteri_centro) > 0:
 		var pp := c + Vector2(62, -62)
 		_ombra_tonda(pp, 30)
 		draw_texture_rect(Stile.tex("res://assets/segnalini/potere.webp"), Rect2(pp - Vector2(30, 30), Vector2(60, 60)), false)
 		_numero(pp + Vector2(24, 24), str(int(s.poteri_centro)))
+
+## White Moon: Portale, ricettacoli e pila dei villici su una tessera
+func _disegna_luna_tessera(t: int, c: Vector2) -> void:
+	if t == int(s.get("portale", -1)):
+		var pp := c + Vector2(0, -8)
+		var pulsa := 0.5 + 0.5 * sin(_tempo * 1.6)
+		draw_circle(pp, 70 + 6 * pulsa, Color(0.55, 0.75, 1.0, 0.16))
+		draw_texture_rect(Stile.tex("res://assets/segnalini/portale.webp"), Rect2(pp - Vector2(58, 58), Vector2(116, 116)), false, Color(1, 1, 1, 0.92))
+	var ri: int = [0, 2, 6, 8].find(t)
+	if ri >= 0:
+		# il ricettacolo sta sull'angolo esterno della tessera d'angolo
+		var dir := Vector2(-1 if t % 3 == 0 else 1, -1 if t < 3 else 1)
+		var rp := c + dir * (T * 0.5 + 34)
+		_ombra_tonda(rp, 30)
+		draw_circle(rp, 30, Color(0.08, 0.09, 0.16))
+		draw_arc(rp, 30, 0, TAU, 30, Color(0.65, 0.8, 1.0, 0.9), 4)
+		if s.ricettacoli[ri]:
+			var pulsa := 0.5 + 0.5 * sin(_tempo * 3.0 + ri)
+			draw_circle(rp, 34 + 4 * pulsa, Color(0.6, 0.85, 1.0, 0.25))
+			draw_texture_rect(Stile.tex("res://assets/segnalini/cristallo.webp"), Rect2(rp - Vector2(26, 26), Vector2(52, 52)), false)
+	var ab: Array = s.villaggio[t].get("ab", [])
+	if not ab.is_empty():
+		var base := c + Vector2(T * 0.5 - 52, T * 0.5 - 52)
+		for i in ab.size():
+			var q := base + Vector2(-i * 9, -i * 9)
+			var r := Rect2(q - Vector2(40, 40), Vector2(80, 80))
+			draw_rect(Rect2(r.position + Vector2(4, 5), r.size), Color(0, 0, 0, 0.5))
+			if i == ab.size() - 1:
+				draw_texture_rect(Stile.tex("res://assets/villici/%s.webp" % ab[i]), r, false)
+			else:
+				draw_texture_rect(Stile.tex("res://assets/villici/dorso.webp"), r, false)
+			draw_rect(r, Color(0.1, 0.08, 0.05), false, 2)
+		if ab.size() > 1:
+			_numero(base + Vector2(30, 30), str(ab.size()))
 
 func _numero(p: Vector2, testo: String) -> void:
 	draw_circle(p, 18, Color(0.05, 0.05, 0.1))

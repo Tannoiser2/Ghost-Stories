@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/hua_figlio.webp-a100a1e55f16f8184effa9b33e587
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

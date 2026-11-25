@@ -8,7 +8,7 @@ signal esci
 
 const CHIAVE_SALVATAGGIO := "ghoststories_partita"
 const BREVE := {"casa_te": "Casa del Tè", "erborista": "Erborista", "padiglione": "Padiglione", "altare": "Altare",
-	"tempio": "Tempio", "cerchio": "Cerchio", "stregone": "Stregone", "cimitero": "Cimitero", "guardiano": "Guardiano"}
+	"tempio": "Tempio", "cerchio": "Cerchio", "stregone": "Stregone", "cimitero": "Cimitero", "guardiano": "Guardiano", "kungfu": "Kung-Fu"}
 
 var rete: Rete
 var m: Motore = null              # nullo per gli ospiti online
@@ -235,6 +235,7 @@ func _costruisci_pannelli() -> void:
 	barra = Stile.etichetta("", 22, Stile.TESTO)
 	barra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	barra.custom_minimum_size.x = 400
+	barra.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	barra_pan.add_child(barra)
 	# comandi della vista
 	comandi = HBoxContainer.new()
@@ -357,7 +358,8 @@ func _riposiziona() -> void:
 		vista.position = area.position
 		vista.size = area.size
 	barra_pan.position = Vector2(area.position.x + 10, area.position.y + 8)
-	barra_pan.size = Vector2(area.size.x - 20, 46)
+	barra_pan.size = Vector2(area.size.x - 20, 0)
+	barra.add_theme_font_size_override("font_size", 22 if area.size.x > 1000 else 18)
 	comandi.position = Vector2(area.position.x + 10, area.end.y - 54)
 	comandi.size = Vector2(area.size.x - 20, 46)
 	toast_box.position = Vector2(area.position.x + 20, area.position.y + 64)
@@ -443,7 +445,16 @@ func _barra() -> void:
 		int(s.giro), Dati.NOMI_LIVELLO[s.livello], s.mazzo.size(), int(s.inc_sconfitte), int(s.inc_totali), inf, lim, maxi(dadi, 0)]
 	if s.cerchio != "":
 		t += "  ·  Cerchio: %s" % Dati.NOMI_COLORE[s.cerchio]
+	if s.get("luna", false):
+		var pieni := 0
+		for x in s.ricettacoli:
+			if x:
+				pieni += 1
+		t += "\nVillici in salvo %d  ·  Villici morti %d/12  ·  Ricettacoli %d/4  ·  Cristalli in riserva %d" % [s.villici_salvi.size(), s.villici_morti.size(), pieni, int(s.cristalli)]
+		if s.barriera:
+			t += "  ·  BARRIERA MISTICA"
 	barra.text = t
+	barra_pan.size.y = 0
 
 func _schede() -> void:
 	for c in box_schede.get_children():
@@ -503,6 +514,18 @@ func _scheda(p: int) -> Control:
 				riga.add_child(_icona("res://assets/segnalini/buddha.webp", int(b.buddha), 40, Color(1, 0.86, 0.45)))
 			if int(b.poteri) > 0:
 				riga.add_child(_icona("res://assets/segnalini/potere.webp", int(b.poteri), 40))
+			if int(b.get("cristalli", 0)) > 0:
+				riga.add_child(_icona("res://assets/segnalini/cristallo.webp", int(b.cristalli), 40))
+			if b.get("a_terra", false):
+				riga.add_child(Stile.etichetta("A TERRA", 18, Stile.ROSSO, Stile.grassetto()))
+		if not b.get("artefatti", []).is_empty():
+			var ar := HBoxContainer.new()
+			ar.add_theme_constant_override("separation", 4)
+			v.add_child(ar)
+			for a in b.artefatti:
+				var ic := _icona("res://assets/artefatti/%s.webp" % a, -1, 40)
+				ic.tooltip_text = "%s: %s" % [Dati.artefatto(a).get("nome", a), Dati.artefatto(a).get("desc", "")]
+				ar.add_child(ic)
 		var tao := HBoxContainer.new()
 		tao.add_theme_constant_override("separation", 4)
 		v.add_child(tao)
