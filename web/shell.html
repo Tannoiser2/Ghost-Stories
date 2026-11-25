@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#07080f">
+<title>Ghost Stories</title>
+<link rel="icon" href="img/icona.png">
+<style>
+@font-face { font-family: 'Titolo'; src: url('font/KaushanScript-Regular.ttf'); }
+@font-face { font-family: 'Testo'; src: url('font/AlegreyaSans-Medium.ttf'); }
+html, body, #canvas { margin: 0; padding: 0; border: 0; }
+body { color: #efe6d2; background: #07080f; overflow: hidden; touch-action: none; font-family: 'Testo', sans-serif; }
+#canvas { display: block; width: 100vw; height: 100vh; }
+#canvas:focus { outline: none; }
+#avvio { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+  background: radial-gradient(ellipse at 50% 30%, #23305a 0%, #0c1024 45%, #05060c 100%); z-index: 10; text-align: center; padding: 20px; }
+#avvio h1 { font-family: 'Titolo', sans-serif; font-weight: 400; font-size: min(130px, 17vw); color: #f3e9d0; margin: 0; letter-spacing: 1px;
+  text-shadow: 0 0 18px rgba(150, 190, 255, .55), 0 6px 0 #3b0d0d; }
+#avvio .box { background: rgba(10, 12, 24, .88); border: 2px solid #c9a24f; border-radius: 16px; padding: 22px 34px; max-width: 640px; min-width: 260px; box-shadow: 0 10px 30px rgba(0,0,0,.6); }
+#avvio p { font-size: 23px; margin: 8px 0; }
+#avvio button { font-family: 'Titolo', sans-serif; font-size: 40px; color: #fff4dc; background: #8e1c17; border: 3px solid #e2bb63;
+  border-radius: 14px; padding: 8px 44px; cursor: pointer; }
+#avvio button:active { transform: scale(.97); }
+#stato { color: #e2bb63; font-size: 23px; min-height: 30px; text-shadow: 0 2px 4px #000; }
+#stato progress { width: 360px; height: 18px; max-width: 80vw; }
+</style>
+$GODOT_HEAD_INCLUDE
+</head>
+<body>
+<canvas id="canvas">Il tuo browser non supporta i canvas.</canvas>
+<div id="avvio">
+  <h1>Ghost Stories</h1>
+  <div class="box">
+    <p>Quattro Taoisti difendono il villaggio dai fantasmi di Wu-Feng, Signore dei Nove Inferi.</p>
+    <button id="apri">Entra nel villaggio</button>
+  </div>
+  <div id="stato"></div>
+</div>
+<div id="versione" style="position:fixed;right:8px;bottom:6px;color:#9a917e;font-size:13px;z-index:11">versione __VERSIONE__</div>
+<script src="js/vendor/qrcode.js"></script>
+<script src="$GODOT_URL?v=__VERSIONE__"></script>
+<script type="module">
+import './js/ponte.js?v=__VERSIONE__';
+import { sbloccaAudio } from './js/suoni.js?v=__VERSIONE__';
+
+const GODOT_CONFIG = $GODOT_CONFIG;
+// ogni pubblicazione ha il suo numero: il browser non riusa la versione vecchia del gioco
+const VERSIONE = '__VERSIONE__';
+GODOT_CONFIG.mainPack = (GODOT_CONFIG.mainPack || 'index.pck') + '?v=' + VERSIONE;
+const engine = new Engine(GODOT_CONFIG);
+const stato = document.getElementById('stato');
+const q = new URLSearchParams(location.search);
+
+async function schermoAcceso() {
+  try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (e) { /* ok */ }
+}
+
+let partito = false;
+async function parti() {
+  if (partito) return;
+  partito = true;
+  sbloccaAudio(); schermoAcceso();
+  const missing = Engine.getMissingFeatures({ threads: false });
+  if (missing.length) {
+    stato.textContent = 'Questo browser non riesce ad aprire il gioco: ' + missing.join(', ');
+    return;
+  }
+  stato.innerHTML = 'Si accendono le lanterne... <progress id="pr"></progress>';
+  const pr = document.getElementById('pr');
+  try {
+    await engine.startGame({
+      onProgress(cur, tot) { if (cur > 0 && tot > 0) { pr.value = cur; pr.max = tot; } },
+    });
+    document.getElementById('avvio').remove();
+    document.getElementById('versione').remove();
+  } catch (e) {
+    console.error(e);
+    stato.textContent = 'Errore: ' + (e?.message || e);
+  }
+}
+document.getElementById('apri').addEventListener('click', parti);
+if (q.has('auto') || q.has('subito')) parti();
+</script>
+</body>
+</html>

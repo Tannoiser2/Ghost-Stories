@@ -1,0 +1,1033 @@
+{
+ "fantasmi": [
+  {
+   "n": 1,
+   "nome": "Ghoul",
+   "originale": "Ghoul",
+   "colore": "giallo",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 2,
+   "nome": "Cadavere Errante",
+   "originale": "Walking Corpse",
+   "colore": "giallo",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "immune"
+   ]
+  },
+  {
+   "n": 3,
+   "nome": "Spaccabare",
+   "originale": "Coffin Breakers",
+   "colore": "giallo",
+   "resistenza": 1,
+   "arrivo": [
+    "fantasma",
+    "potere"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 4,
+   "nome": "Spaccabare",
+   "originale": "Coffin Breakers",
+   "colore": "giallo",
+   "resistenza": 1,
+   "arrivo": [
+    "fantasma"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 5,
+   "nome": "Morto Inquieto",
+   "originale": "Restless Dead",
+   "colore": "giallo",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 6,
+   "nome": "Zombi",
+   "originale": "Zombie",
+   "colore": "giallo",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 7,
+   "nome": "Zombi",
+   "originale": "Zombie",
+   "colore": "giallo",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 8,
+   "nome": "Vampiro Saltellante",
+   "originale": "Hopping Vampire",
+   "colore": "giallo",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 9,
+   "nome": "Vampiro Saltellante",
+   "originale": "Hopping Vampire",
+   "colore": "giallo",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 10,
+   "nome": "Peste Gialla",
+   "originale": "Yellow Plague",
+   "colore": "giallo",
+   "resistenza": 4,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "tao2"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 11,
+   "nome": "Lich",
+   "originale": "Lich",
+   "colore": "giallo",
+   "resistenza": 4,
+   "arrivo": [],
+   "turno": [
+    "tormento"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 12,
+   "nome": "Fanciulla Annegata",
+   "originale": "Drowned Maiden",
+   "colore": "blu",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 13,
+   "nome": "Segugio degli Abissi",
+   "originale": "Hound of Depth",
+   "colore": "blu",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "immune"
+   ]
+  },
+  {
+   "n": 14,
+   "nome": "Ninfa Perfida",
+   "originale": "Perfidious Nymph",
+   "colore": "blu",
+   "resistenza": 1,
+   "arrivo": [
+    "fantasma",
+    "potere"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 15,
+   "nome": "Ninfa Perfida",
+   "originale": "Perfidious Nymph",
+   "colore": "blu",
+   "resistenza": 1,
+   "arrivo": [
+    "fantasma"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 16,
+   "nome": "Piedi Viscidi",
+   "originale": "Sticky Feet",
+   "colore": "blu",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 17,
+   "nome": "Abissale",
+   "originale": "Abysmal",
+   "colore": "blu",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 18,
+   "nome": "Abissale",
+   "originale": "Abysmal",
+   "colore": "blu",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 19,
+   "nome": "Diavolo di Melma",
+   "originale": "Ooze Devil",
+   "colore": "blu",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 20,
+   "nome": "Diavolo di Melma",
+   "originale": "Ooze Devil",
+   "colore": "blu",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 21,
+   "nome": "Orrore Liquido",
+   "originale": "Liquid Horror",
+   "colore": "blu",
+   "resistenza": 4,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "tao2"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 22,
+   "nome": "Furia degli Abissi",
+   "originale": "Fury of Depth",
+   "colore": "blu",
+   "resistenza": 4,
+   "arrivo": [],
+   "turno": [
+    "tormento"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 23,
+   "nome": "Strisciante",
+   "originale": "Creeping One",
+   "colore": "verde",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 24,
+   "nome": "Cosa Fungina",
+   "originale": "Fungus Thing",
+   "colore": "verde",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "immune"
+   ]
+  },
+  {
+   "n": 25,
+   "nome": "Monaci Caduti",
+   "originale": "Fallen Monks",
+   "colore": "verde",
+   "resistenza": 1,
+   "arrivo": [
+    "fantasma",
+    "potere"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 26,
+   "nome": "Monaco Caduto",
+   "originale": "Fallen Monk",
+   "colore": "verde",
+   "resistenza": 1,
+   "arrivo": [
+    "fantasma"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 27,
+   "nome": "Spirito Inquieto",
+   "originale": "Restless Spirit",
+   "colore": "verde",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 28,
+   "nome": "Anima Marcia",
+   "originale": "Rotten Soul",
+   "colore": "verde",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 29,
+   "nome": "Anima Marcia",
+   "originale": "Rotten Soul",
+   "colore": "verde",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 30,
+   "nome": "Malvagio",
+   "originale": "Wicked One",
+   "colore": "verde",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 31,
+   "nome": "Malvagio",
+   "originale": "Wicked One",
+   "colore": "verde",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 32,
+   "nome": "Abominio Verde",
+   "originale": "Green Abomination",
+   "colore": "verde",
+   "resistenza": 4,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "tao2"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 33,
+   "nome": "Grande Putrido",
+   "originale": "Great Putrid",
+   "colore": "verde",
+   "resistenza": 4,
+   "arrivo": [],
+   "turno": [
+    "tormento"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 34,
+   "nome": "Scorticatore",
+   "originale": "Skinner",
+   "colore": "rosso",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 35,
+   "nome": "Mietitore",
+   "originale": "Reaper",
+   "colore": "rosso",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "immune"
+   ]
+  },
+  {
+   "n": 36,
+   "nome": "Signore dalle Unghie Affilate",
+   "originale": "Sharp-Nailed Mistresses",
+   "colore": "rosso",
+   "resistenza": 1,
+   "arrivo": [
+    "fantasma",
+    "potere"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 37,
+   "nome": "Signora dalle Unghie Affilate",
+   "originale": "Sharp-Nailed Mistress",
+   "colore": "rosso",
+   "resistenza": 1,
+   "arrivo": [
+    "fantasma"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 38,
+   "nome": "Occhi Sanguinanti",
+   "originale": "Bleeding Eyes",
+   "colore": "rosso",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 39,
+   "nome": "Bevitore di Sangue",
+   "originale": "Blood Drinker",
+   "colore": "rosso",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 40,
+   "nome": "Bevitore di Sangue",
+   "originale": "Blood Drinker",
+   "colore": "rosso",
+   "resistenza": 2,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 41,
+   "nome": "Malfattore Scarlatto",
+   "originale": "Scarlet Evildoer",
+   "colore": "rosso",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 42,
+   "nome": "Malfattore Scarlatto",
+   "originale": "Scarlet Evildoer",
+   "colore": "rosso",
+   "resistenza": 3,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": []
+  },
+  {
+   "n": 43,
+   "nome": "Divoratore di Carne",
+   "originale": "Flesh Devourer",
+   "colore": "rosso",
+   "resistenza": 4,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "tao2"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 44,
+   "nome": "Furente",
+   "originale": "Raging One",
+   "colore": "rosso",
+   "resistenza": 4,
+   "arrivo": [],
+   "turno": [
+    "tormento"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 45,
+   "nome": "Servo Tetro",
+   "originale": "Gloomy Minion",
+   "colore": "nero",
+   "resistenza": 1,
+   "arrivo": [
+    "rapido"
+   ],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "tao1"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 46,
+   "nome": "Bellezza Ripugnante",
+   "originale": "Repellent Beauty",
+   "colore": "nero",
+   "resistenza": 1,
+   "arrivo": [
+    "dado"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "tao1"
+   ],
+   "permanente": [
+    "immune"
+   ]
+  },
+  {
+   "n": 47,
+   "nome": "Teste Mozzate",
+   "originale": "Severed Heads",
+   "colore": "nero",
+   "resistenza": 1,
+   "arrivo": [
+    "dado",
+    "fantasma"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "tao1"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 48,
+   "nome": "Teste Mozzate",
+   "originale": "Severed Heads",
+   "colore": "nero",
+   "resistenza": 1,
+   "arrivo": [
+    "dado",
+    "fantasma"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "tao1"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 49,
+   "nome": "Vagatombe",
+   "originale": "Grave Walker",
+   "colore": "nero",
+   "resistenza": 2,
+   "arrivo": [
+    "qi"
+   ],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 50,
+   "nome": "Vedova Nera",
+   "originale": "Black Widow",
+   "colore": "nero",
+   "resistenza": 2,
+   "arrivo": [
+    "notao"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "maledizione",
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 51,
+   "nome": "Vedova Nera",
+   "originale": "Black Widow",
+   "colore": "nero",
+   "resistenza": 2,
+   "arrivo": [
+    "notao"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "maledizione",
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 52,
+   "nome": "Spettro Oscuro",
+   "originale": "Dark Wraith",
+   "colore": "nero",
+   "resistenza": 3,
+   "arrivo": [
+    "rapido"
+   ],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 53,
+   "nome": "Spettro Oscuro",
+   "originale": "Dark Wraith",
+   "colore": "nero",
+   "resistenza": 3,
+   "arrivo": [
+    "rapido"
+   ],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 54,
+   "nome": "Male Informe",
+   "originale": "Shapeless Evil",
+   "colore": "nero",
+   "resistenza": 4,
+   "arrivo": [
+    "infesta"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  },
+  {
+   "n": 55,
+   "nome": "Mangiatore di Anime",
+   "originale": "Soul Eater",
+   "colore": "nero",
+   "resistenza": 4,
+   "arrivo": [
+    "gruppo_tao"
+   ],
+   "turno": [
+    "tormento"
+   ],
+   "esorcismo": [
+    "qi_yy"
+   ],
+   "permanente": []
+  }
+ ],
+ "incarnazioni": [
+  {
+   "n": 56,
+   "nome": "Incubo Ululante",
+   "originale": "Howling Nightmare",
+   "colore": "nero",
+   "resistenza": 3,
+   "colore_banda": "giallo",
+   "arrivo": [
+    "fantasma"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "ululante"
+   ],
+   "incarnazione": true,
+   "descrizione": "Entrando porta in gioco un fantasma. Si può esorcizzare solo se lo spazio di fronte, sulla plancia opposta, è libero."
+  },
+  {
+   "n": 57,
+   "nome": "Inafferrabile",
+   "originale": "Uncatchable",
+   "colore": "nero",
+   "resistenza": 3,
+   "colore_banda": "nero",
+   "arrivo": [
+    "maledizione"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "inafferrabile"
+   ],
+   "incarnazione": true,
+   "descrizione": "Entrando fa tirare il dado della maledizione. Si può esorcizzare solo se si trova su uno spazio con un Buddha (portato lì col Padiglione o arrivato su un Buddha)."
+  },
+  {
+   "n": 58,
+   "nome": "Ammazzasperanze",
+   "originale": "Hope Killer",
+   "colore": "nero",
+   "resistenza": {
+    "rosso": 2,
+    "verde": 2,
+    "blu": 2,
+    "giallo": 2
+   },
+   "colore_banda": "nero",
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Conta come fantasma nero. Esorcizzato, si tira il dado della maledizione."
+  },
+  {
+   "n": 59,
+   "nome": "Esercito della Morte",
+   "originale": "Death's Army",
+   "colore": "nero",
+   "resistenza": 5,
+   "colore_banda": "nero",
+   "arrivo": [],
+   "turno": [
+    "tormento"
+   ],
+   "esorcismo": [
+    "maledizione"
+   ],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Tormentatore: tira il dado della maledizione a ogni fase Yin. Esorcizzato, si tira ancora il dado."
+  },
+  {
+   "n": 60,
+   "nome": "Dimenticati",
+   "originale": "Forgotten Ones",
+   "colore": "nero",
+   "resistenza": 3,
+   "colore_banda": "nero",
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "nopoteri"
+   ],
+   "incarnazione": true,
+   "descrizione": "Finché resta in gioco nessun Taoista può usare il proprio potere, nemmeno con i segnalini potere neutri."
+  },
+  {
+   "n": 61,
+   "nome": "Spezzaossa",
+   "originale": "Bone Cracker",
+   "colore": "rosso",
+   "resistenza": 4,
+   "colore_banda": "rosso",
+   "arrivo": [
+    "gruppo_tao"
+   ],
+   "turno": [
+    "gruppo_tao"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Entrando e a ogni fase Yin della sua plancia, ogni Taoista scarta un segnalino Tao, se ne ha."
+  },
+  {
+   "n": 62,
+   "nome": "Signora Oscura",
+   "originale": "Dark Mistress",
+   "colore": "blu",
+   "resistenza": 3,
+   "colore_banda": "blu",
+   "arrivo": [
+    "notao"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Finché resta in gioco i Taoisti non possono usare i segnalini Tao (il Cerchio di Preghiera funziona)."
+  },
+  {
+   "n": 63,
+   "nome": "Orrore Strisciante",
+   "originale": "Creeping Horror",
+   "colore": "verde",
+   "resistenza": 5,
+   "colore_banda": "verde",
+   "arrivo": [
+    "dado"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Entrando cattura un dado Tao e lo tiene finché non viene esorcizzato."
+  },
+  {
+   "n": 64,
+   "nome": "Signore dei Vampiri",
+   "originale": "Vampire Lord",
+   "colore": "giallo",
+   "resistenza": 4,
+   "colore_banda": "giallo",
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Un infestatore con resistenza 4."
+  },
+  {
+   "n": 65,
+   "nome": "Senza Nome",
+   "originale": "Nameless",
+   "colore": "nero",
+   "resistenza": {
+    "nero": 1,
+    "rosso": 1,
+    "verde": 1,
+    "blu": 1,
+    "giallo": 1
+   },
+   "colore_banda": "nero",
+   "arrivo": [
+    "cerchio"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "bianco_nullo"
+   ],
+   "incarnazione": true,
+   "descrizione": "Conta come fantasma nero. Entrando scarta il segnalino del Cerchio di Preghiera. Finché resta in gioco le facce bianche dei dadi Tao non valgono."
+  }
+ ],
+ "villaggio": {
+  "casa_te": {
+   "nome": "Casa del Tè",
+   "originale": "Tea House",
+   "aiuto": "Prendi un segnalino Tao del colore che vuoi e guadagni 1 Qi, poi entra in gioco un fantasma."
+  },
+  "erborista": {
+   "nome": "Bottega dell'Erborista",
+   "originale": "Herbalist's Shop",
+   "aiuto": "Tira 2 dadi Tao e prendi i segnalini dei colori usciti (bianco: colore a scelta)."
+  },
+  "padiglione": {
+   "nome": "Padiglione dei Venti Celesti",
+   "originale": "Pavilion of the Heavenly Winds",
+   "aiuto": "Sposta un fantasma su uno spazio libero qualunque (anche con un Buddha), poi sposta un altro Taoista su una tessera qualunque."
+  },
+  "altare": {
+   "nome": "Altare Taoista",
+   "originale": "Taoist Altar",
+   "aiuto": "Libera una tessera infestata girandola sul lato attivo, poi entra in gioco un fantasma."
+  },
+  "tempio": {
+   "nome": "Tempio Buddista",
+   "originale": "Buddhist Temple",
+   "aiuto": "Prendi un Buddha: in un turno successivo lo metterai su uno spazio libero di fronte a te."
+  },
+  "cerchio": {
+   "nome": "Cerchio di Preghiera",
+   "originale": "Circle of Prayer",
+   "aiuto": "Metti (o cambia) qui un segnalino Tao: tutti i fantasmi di quel colore hanno 1 di resistenza in meno."
+  },
+  "stregone": {
+   "nome": "Capanna dello Stregone",
+   "originale": "Sorcerer's Hut",
+   "aiuto": "Manda all'inferno un fantasma qualunque (non un'incarnazione), senza effetti né ricompense. Perdi 1 Qi."
+  },
+  "cimitero": {
+   "nome": "Cimitero",
+   "originale": "Cemetery",
+   "aiuto": "Riporta in vita un Taoista morto con 2 Qi sul Cimitero, poi tira il dado della maledizione."
+  },
+  "guardiano": {
+   "nome": "Ronda del Guardiano Notturno",
+   "originale": "Night Watchman's Beat",
+   "aiuto": "Tutte le figurine infestanti di una plancia a scelta tornano indietro di un passo, sulla carta."
+  }
+ },
+ "poteri": {
+  "giallo_0": {
+   "nome": "Mantra dell'Indebolimento",
+   "desc": "Prima di muovere, metti o sposta il mantra su un fantasma: la sua resistenza scende di 1 per tutti."
+  },
+  "giallo_1": {
+   "nome": "Tasche Senza Fondo",
+   "desc": "Prima di muovere, prendi un segnalino Tao del colore che vuoi."
+  },
+  "rosso_0": {
+   "nome": "Danza dei Venti Gemelli",
+   "desc": "Dopo il tuo movimento puoi muovere anche un altro Taoista di una tessera."
+  },
+  "rosso_1": {
+   "nome": "Danza delle Vette",
+   "desc": "Puoi volare su qualunque tessera del villaggio, non solo su quelle vicine."
+  },
+  "blu_0": {
+   "nome": "Secondo Respiro",
+   "desc": "Dalla tua tessera chiedi due volte aiuto OPPURE tenti due esorcismi separati."
+  },
+  "blu_1": {
+   "nome": "Raffica Celeste",
+   "desc": "Nello stesso turno chiedi aiuto E tenti un esorcismo, nell'ordine che vuoi."
+  },
+  "verde_0": {
+   "nome": "Forza della Montagna",
+   "desc": "Negli esorcismi tiri un quarto dado Tao. Non tiri mai il dado della maledizione."
+  },
+  "verde_1": {
+   "nome": "Prediletto degli Dei",
+   "desc": "Puoi ritirare una volta i dadi Tao di un esorcismo o di un aiuto, e anche il dado della maledizione (vale il secondo tiro)."
+  }
+ }
+}
