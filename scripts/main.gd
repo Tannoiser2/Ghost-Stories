@@ -102,6 +102,13 @@ func _pannello(larghezza := 640.0) -> VBoxContainer:
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.add_theme_constant_override("separation", 14)
 	sc.add_child(v)
+	# il pannello è alto quanto il contenuto, fino al massimo dello schermo
+	var massimo := sc.custom_minimum_size.y
+	var adatta := func():
+		if is_instance_valid(sc) and is_instance_valid(v):
+			sc.custom_minimum_size.y = minf(v.get_combined_minimum_size().y + 4, massimo)
+	v.minimum_size_changed.connect(adatta)
+	adatta.call_deferred()
 	return v
 
 func _titolo(v: VBoxContainer, t: String, dim := 56) -> void:

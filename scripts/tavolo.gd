@@ -105,14 +105,22 @@ func _draw() -> void:
 ## Le targhette con chi gioca ogni plancia, sempre dritte sullo schermo
 func _disegna_etichette() -> void:
 	var f := Stile.grassetto()
-	var dim := int(clampf(24.0 * zoom / 0.5, 15.0, 30.0))
+	var dim := int(clampf(22.0 * zoom / 0.5, 14.0, 26.0))
+	var vis := area_utile.grow(-2) if area_utile.size.x > 10 else Rect2(Vector2.ZERO, size)
 	for p in 4:
 		var et: String = etichette.get(p, "")
 		if et == "":
 			continue
 		var b: Dictionary = s.plance[p]
-		var punto := _xform() * (xf_plancia(p) * Vector2(725, 1066 + 50))
+		var bordo := _xform() * (xf_plancia(p) * Vector2(725, 1066))
+		var cen := _xform() * (xf_plancia(p) * CENTRO_PLANCIA)
+		var dir := (bordo - cen).normalized()
 		var w := f.get_string_size(et, HORIZONTAL_ALIGNMENT_LEFT, -1, dim).x
+		# la targhetta sta tutta fuori dalla plancia, dalla parte di chi la gioca
+		var punto := bordo + dir * (absf(dir.x) * (w / 2 + 16) + absf(dir.y) * (dim * 0.9))
+		# dentro la parte visibile del tavolo
+		punto.x = clampf(punto.x, vis.position.x + w / 2 + 14, vis.end.x - w / 2 - 14)
+		punto.y = clampf(punto.y, vis.position.y + dim, vis.end.y - dim)
 		var r := Rect2(punto - Vector2(w / 2 + 12, dim * 0.75), Vector2(w + 24, dim * 1.5))
 		draw_rect(r, Color(0.04, 0.05, 0.1, 0.9))
 		draw_rect(r, Stile.colore(b.colore), false, 2)
@@ -260,11 +268,15 @@ func _figura(c: Vector2, col: String, vivo: bool, di_turno: bool) -> void:
 	draw_circle(c, r, colore if vivo else Color(0.35, 0.35, 0.38))
 	draw_arc(c, r, 0, TAU, 32, Stile.ORO if vivo else Color(0.2, 0.2, 0.2), 4)
 	var bianco := Color(0.98, 0.96, 0.9) if vivo else Color(0.75, 0.75, 0.75)
-	# veste
-	draw_colored_polygon(PackedVector2Array([c + Vector2(-20, 28), c + Vector2(20, 28), c + Vector2(9, 0), c + Vector2(-9, 0)]), bianco)
-	# testa e cappello
-	draw_circle(c + Vector2(0, -8), 9, bianco)
-	draw_colored_polygon(PackedVector2Array([c + Vector2(-20, -14), c + Vector2(20, -14), c + Vector2(0, -30)]), Color(0.1, 0.1, 0.12))
+	var scuro := Color(0.08, 0.07, 0.1)
+	# veste con le maniche larghe
+	draw_colored_polygon(PackedVector2Array([c + Vector2(-24, 30), c + Vector2(24, 30), c + Vector2(15, 2), c + Vector2(22, 8), c + Vector2(12, -4), c + Vector2(-12, -4), c + Vector2(-22, 8), c + Vector2(-15, 2)]), bianco)
+	draw_line(c + Vector2(0, -2), c + Vector2(0, 30), scuro, 2.5)
+	# volto
+	draw_circle(c + Vector2(0, -11), 8.5, Color(0.96, 0.82, 0.66) if vivo else Color(0.7, 0.7, 0.7))
+	# cappello di paglia largo e piatto
+	draw_colored_polygon(PackedVector2Array([c + Vector2(-25, -14), c + Vector2(25, -14), c + Vector2(0, -29)]), scuro)
+	draw_line(c + Vector2(-25, -14), c + Vector2(25, -14), Stile.ORO, 2.0)
 	if not vivo:
 		_croce(c, 26, Color(0.9, 0.1, 0.1), 7)
 

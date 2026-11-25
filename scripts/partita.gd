@@ -221,8 +221,8 @@ func _costruisci_pannelli() -> void:
 	diario.scroll_following = true
 	diario.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	diario.custom_minimum_size = Vector2(200, 120)
-	diario.add_theme_font_size_override("normal_font_size", 18)
-	diario.add_theme_font_size_override("bold_font_size", 18)
+	diario.add_theme_font_size_override("normal_font_size", 20)
+	diario.add_theme_font_size_override("bold_font_size", 20)
 	diario.add_theme_font_override("bold_font", Stile.grassetto())
 	diario.add_theme_color_override("default_color", Stile.TESTO)
 	v.add_child(diario)
@@ -291,7 +291,7 @@ func _riposiziona() -> void:
 		return
 	var area: Rect2
 	if _verticale():
-		var alto := 250.0
+		var alto := 150.0
 		var basso := H * 0.36
 		pan_sx.position = Vector2(10, 10)
 		pan_sx.size = Vector2(W - 20, alto)
