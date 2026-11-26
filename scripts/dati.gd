@@ -27,7 +27,7 @@ static func tutto() -> Dictionary:
 			carte[int(g["n"])] = g
 		for g in j["incarnazioni"]:
 			carte[int(g["n"])] = g
-		_d = {"carte": carte, "villaggio": j["villaggio"], "poteri": j["poteri"], "villici": j.get("villici", []), "famiglie": j.get("famiglie", {}), "artefatti": j.get("artefatti", {})}
+		_d = {"carte": carte, "villaggio": j["villaggio"], "poteri": j["poteri"], "villici": j.get("villici", []), "famiglie": j.get("famiglie", {}), "artefatti": j.get("artefatti", {}), "demoni": j.get("demoni", {}), "catacombe": j.get("catacombe", {}), "maledizioni": j.get("maledizioni", []), "mantra_sangue": j.get("mantra_sangue", [])}
 	return _d
 
 static func carta(n: int) -> Dictionary:
@@ -35,6 +35,37 @@ static func carta(n: int) -> Dictionary:
 
 static func tessera(id: String) -> Dictionary:
 	return tutto()["villaggio"].get(id, {})
+
+## Resistenza totale di una carta (somma dei colori)
+static func forza(n: int) -> int:
+	var t := 0
+	for v in resistenza(n).values():
+		t += int(v)
+	return t
+
+static func demone(id: String) -> Dictionary:
+	return tutto().get("demoni", {}).get(id, {})
+
+static func catacombe() -> Dictionary:
+	return tutto().get("catacombe", {})
+
+static func maledizione(id: String) -> Dictionary:
+	for m in tutto().get("maledizioni", []):
+		if String(m.id) == id:
+			return m
+	return {}
+
+static func maledizioni() -> Array:
+	return tutto().get("maledizioni", [])
+
+static func mantra_sangue(id: String) -> Dictionary:
+	for m in tutto().get("mantra_sangue", []):
+		if String(m.id) == id:
+			return m
+	return {}
+
+static func tutti_mantra_sangue() -> Array:
+	return tutto().get("mantra_sangue", [])
 
 static func villici() -> Array:
 	return tutto().get("villici", [])
@@ -55,7 +86,7 @@ static func potere(chiave: String) -> Dictionary:
 	return tutto()["poteri"].get(chiave, {})
 
 static func e_incarnazione(n: int) -> bool:
-	return (n >= 56 and n <= 65) or n >= 82
+	return (n >= 56 and n <= 65) or (n >= 82 and n <= 87) or (n >= 100 and n <= 104)
 
 ## Resistenza come dizionario colore -> quantità
 static func resistenza(n: int) -> Dictionary:

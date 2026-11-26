@@ -85,6 +85,10 @@ func nuova_partita(cfg: Dictionary) -> void:
 	if cfg.get("luna_bianca", false):
 		_prepara_luna(cfg, posti)
 		fantasmi = _mazzo_luna(fantasmi)
+	if cfg.get("segreto_nero", false):
+		fantasmi = _prepara_segreto(livello, n, fantasmi)
+		togli = 0
+		s.rimossi = 0
 	fantasmi = fantasmi.slice(togli)
 	var inc := []
 	for k in range(56, 66):
@@ -97,6 +101,10 @@ func nuova_partita(cfg: Dictionary) -> void:
 	if livello in ["incubo", "inferno"]:
 		n_inc = 4 if n >= 3 else 3
 	s.inc_totali = n_inc
+	if segreto():
+		inc = []
+		for k in n_inc:
+			inc.append(300)
 	# dal fondo: 10 fantasmi, un'incarnazione, 10 fantasmi, un'incarnazione... poi il resto in cima
 	var fondo := []
 	for k in n_inc:
@@ -106,6 +114,8 @@ func nuova_partita(cfg: Dictionary) -> void:
 	fondo.reverse()
 	s.mazzo = fantasmi + fondo  # indice 0 = la carta in cima
 	_diario("Inizia la partita: livello %s, %d Taoist%s%s." % [Dati.NOMI_LIVELLO[livello], n, "a" if n == 1 else "i", ", con White Moon" if s.get("luna", false) else ""])
+	if segreto():
+		_diario("Black Secret: Wu-Feng è in gioco con demoni, maledizioni e catacombe.")
 	# chi comincia: il primo Taoista
 	_poi([{"k": "turno", "p": posti[0]}])
 	avanza()
@@ -264,6 +274,8 @@ func potere(p: int, chiave: String) -> bool:
 	if not b.taoista or not b.vivo:
 		return false
 	if "%s_%d" % [b.colore, int(b.lato)] != chiave:
+		if fratello(p) and chiave_potere((p + 2) % POSIZIONI) == chiave:
+			return not potere_spento(p)
 		return false
 	return not potere_spento(p)
 
@@ -293,14 +305,16 @@ func taoisti_morti() -> Array:
 	return o
 
 func qi_in_riserva() -> int:
-	var n := QI_TOTALI
+	var n := QI_TOTALI - qi_sui_mantra()
 	for b in s.plance:
 		n -= int(b.qi)
 	return maxi(n, 0)
 
 ## Chi decide quando la scelta è di gruppo o tocca a una plancia neutra
 func decisore(p: int) -> int:
-	if p >= 0 and plancia(p).taoista and plancia(p).vivo:
+	if p == WU:
+		return WU
+	if p >= 0 and p < POSIZIONI and plancia(p).taoista and plancia(p).vivo:
 		return p
 	var vivi := taoisti_vivi()
 	if vivi.is_empty():
@@ -374,7 +388,7 @@ func tao_disponibili(p: int) -> Dictionary:
 	o["cristalli"] = 0
 	var t := int(plancia(p).tessera)
 	for q in taoisti_vivi():
-		if int(plancia(q).tessera) == t:
+		if int(plancia(q).tessera) == t and sotto(q) == sotto(p):
 			o["cristalli"] += int(plancia(q).get("cristalli", 0))
 			if not tao_bloccati():
 				for c in Dati.COLORI_TAO:
@@ -694,6 +708,20 @@ func _esegui(t: Dictionary) -> void:
 		"dai_artefatto": _t_dai_artefatto(t)
 		"premio_tao_colore": _t_premio_tao_colore(t)
 		"perdi_qi_scelto": _t_perdi_qi_scelto(t)
+		"wf_carta": _t_wf_carta(t)
+		"wf_gioca_inc": _t_wf_gioca_inc(t)
+		"evoca_demone": _t_evoca_demone(t)
+		"lancia_maledizione": _t_lancia_maledizione(t)
+		"rinnova_maledizioni": _t_rinnova_maledizioni(t)
+		"effetto_wf": _t_effetto_wf(t)
+		"piazza_scheletro": _t_piazza_scheletro(t)
+		"fase_demoni": _t_fase_demoni(t)
+		"azione_demone": _t_azione_demone(t)
+		"segnalino_cata": _t_segnalino_cata(t)
+		"ms_scegli": _t_ms_scegli(t)
+		"effetto_ms": _t_effetto_ms(t)
+		"sposta_fantasma_ms": _t_sposta_fantasma_ms(t)
+		"esorcizza_demone": _t_esorcizza_demone(t)
 		_: push_error("compito sconosciuto " + str(t.k))
 
 func _t_turno(t: Dictionary) -> void:
@@ -708,7 +736,10 @@ func _t_turno(t: Dictionary) -> void:
 		s.ultimo_taoista = p
 	_diario("— Turno: %s —" % nome_plancia(p) + (" (morto)" if b.taoista and not b.vivo else ""))
 	_evento({"e": "turno", "p": p})
-	var l := [{"k": "yin_azioni", "p": p}]
+	var l := []
+	if segreto() and b.taoista and b.vivo:
+		l.append({"k": "fase_demoni", "p": p})
+	l.append({"k": "yin_azioni", "p": p})
 	l.append({"k": "yin_arrivo", "p": p})
 	if b.taoista and b.vivo:
 		l.append({"k": "yang", "p": p, "fase": "inizio", "azioni": 0, "tipi": [], "neutri": [], "usati": []})
@@ -737,6 +768,8 @@ func _t_yin_azioni(t: Dictionary) -> void:
 				"uccidi_villico": l.append({"k": "uccidi_scelto", "a": p})
 				"tempo": l.append({"k": "porta_fantasma", "a": p})
 				"muta": l.append({"k": "muta", "p": p, "s": k, "c": c})
+				"attiva_demone": l.append({"k": "azione_demone", "d": "?"})
+				"scheletro": l.append({"k": "piazza_scheletro", "n": 1})
 	_poi(l)
 
 func _t_infestante(t: Dictionary) -> void:
@@ -779,6 +812,10 @@ func _infesta_tessera(x: int) -> void:
 		return
 	s.villaggio[x].inf = true
 	s.suling_evento = true
+	if segreto() and s.cata[x].scala:
+		s.cata[x].scala = false
+		_diario("La scala sotto la tessera %s crolla." % nome_tessera(x))
+		_evento({"e": "scala", "i": x})
 	_diario("La tessera %s è infestata." % nome_tessera(x))
 	_evento({"e": "infesta", "t": x})
 	if n_infestate() >= limite_infestate():
@@ -814,6 +851,10 @@ func _t_porta_fantasma(t: Dictionary) -> void:
 		s.mazzo.append(c)
 		c = int(s.mazzo.pop_front())
 		giri += 1
+	if segreto():
+		_evento({"e": "pesca", "c": c})
+		_poi([{"k": "wf_carta", "a": a, "c": c}])
+		return
 	_diario("Entra in gioco: %s." % Dati.nome(c))
 	_evento({"e": "pesca", "c": c})
 	_poi([{"k": "scegli_spazio", "a": a, "c": c}])
@@ -855,7 +896,7 @@ func _t_scegli_spazio(t: Dictionary) -> void:
 		if spazio(x[0], x[1]).buddha:
 			testo += " (Buddha)"
 		o.append({"id": "s:%d:%d" % [x[0], x[1]], "t": testo, "spazio": x})
-	_chiedi(t, decisore(a), "piazza", "Dove entra %s?" % Dati.nome(c), o)
+	_chiedi(t, int(t.get("chi", decisore(a))), "piazza", "Dove entra %s?" % Dati.nome(c), o)
 	s.domanda["carta"] = c
 
 func _t_piazza(t: Dictionary) -> void:
@@ -972,6 +1013,14 @@ func _t_effetto(t: Dictionary) -> void:
 			_diario("Il Custode del Tempo toglie dal gioco le ultime due carte del mazzo.")
 		"rapido_fuga":
 			pass
+		"attiva_demone":
+			_poi([{"k": "azione_demone", "d": "?"}])
+		"incarnazione_mano":
+			_pesca_incarnazione()
+		"scheletri3":
+			_poi([{"k": "piazza_scheletro", "n": 3}])
+		"scava_pila":
+			_poi([{"k": "effetto_wf", "e": "scava_pila", "a": a}])
 
 ## Se il Taoista giallo perde il potere del mantra, il mantra esce dal gioco
 func _controlla_mantra() -> void:
@@ -1035,6 +1084,8 @@ func _t_perdi_qi(t: Dictionary) -> void:
 		b.qi = int(b.qi) - 1
 		_evento({"e": "qi", "p": p, "d": -1})
 		_diario("%s perde 1 Qi (ne restano %d)." % [nome_plancia(p), int(b.qi)])
+		if segreto() and not effetto_in_gioco("permanente", "no_mantra") and not taoisti_vivi().is_empty():
+			_poi([{"k": "ms_scegli", "modo": "qi", "a": p}])
 		if int(b.qi) == 0:
 			if b.taoista:
 				_morte(p)
@@ -1065,6 +1116,7 @@ func _morte(p: int) -> void:
 	b.poteri = 0
 	var cim := indice_tessera("cimitero")
 	b.tessera = cim if cim >= 0 else 4
+	b.sotto = false
 	b.a_terra = false
 	if not b.get("artefatti", []).is_empty():
 		var eredi := []
@@ -1108,6 +1160,11 @@ func _t_scarta(t: Dictionary) -> void:
 	if ha_mantra(p, k):
 		s.mantra.p = -1
 		s.mantra.s = -1
+	if c == 200:
+		s.scheletri = int(s.scheletri) + 1
+		_diario("Lo scheletro torna polvere.")
+		_evento({"e": "esorcizza", "c": c, "p": p, "s": k, "modo": t.modo})
+		return
 	s.scarti.append(c)
 	_evento({"e": "esorcizza", "c": c, "p": p, "s": k, "modo": t.modo})
 	var a := int(t.get("a", -1))
@@ -1129,13 +1186,19 @@ func _t_scarta(t: Dictionary) -> void:
 			"tao1": l.append({"k": "premio_tao", "a": a, "n": 1})
 			"tao2": l.append({"k": "premio_tao", "a": a, "n": 2})
 			"cristallo": l.append({"k": "premio_cristallo", "a": a})
+			"fantasma": l.append({"k": "porta_fantasma", "a": int(s.turno_di)})
+			"maledizione_libera": l.append({"k": "effetto_wf", "e": "maledizione_libera", "a": a})
 	if Dati.e_incarnazione(c):
 		s.inc_sconfitte = int(s.inc_sconfitte) + 1
 		_diario("Un'incarnazione di Wu-Feng è sconfitta (%d su %d)." % [int(s.inc_sconfitte), int(s.inc_totali)])
 		if int(s.inc_sconfitte) >= int(s.inc_totali):
 			l.append({"k": "vittoria"})
 		else:
-			l.append({"k": "premio_incarnazione", "a": a, "fase": "cristallo" if c >= 82 else "qi"})
+			if c >= 100:
+				l.append({"k": "premio_incarnazione", "a": a, "fase": "yy"})
+				l.append({"k": "ms_scegli", "modo": "qi", "a": a})
+			else:
+				l.append({"k": "premio_incarnazione", "a": a, "fase": "cristallo" if c >= 82 else "qi"})
 	_poi(l)
 
 func _t_premio_qi_yy(t: Dictionary) -> void:
@@ -1241,7 +1304,9 @@ func _t_yang(t: Dictionary) -> void:
 		return
 	var o := opzioni_yang(t)
 	var testo: String = {"inizio": "Muovi il tuo Taoista (o resta dove sei).", "azione": "Scegli l'azione: esorcismo o aiuto del villaggio.",
-		"fine": "Fine del turno."}[t.fase]
+		"fine": "Fine del turno.", "livello": "C'è una scala: cambi livello?"}[t.fase]
+	if t.fase == "azione" and sotto(p):
+		testo = "Nelle catacombe si può solo esorcizzare un demone."
 	_chiedi(t, p, "yang", testo, o)
 
 func max_azioni(p: int, t: Dictionary) -> int:
@@ -1262,6 +1327,30 @@ func opzioni_yang(t: Dictionary) -> Array:
 		if potere(p, "rosso_1"):
 			for x in adiacenti(qui):
 				o.append({"id": "m:%d" % x, "t": "Rialzati e vai a %s" % nome_tessera(x), "tessera": x})
+	elif t.fase == "livello":
+		if b.get("sotto", false):
+			o.append({"id": "sali", "t": "Sali nel villaggio: " + nome_tessera(qui), "tessera": qui})
+		else:
+			o.append({"id": "scendi", "t": "Scendi nella " + nome_cata(qui), "cata": qui})
+		o.append({"id": "resta_livello", "t": "Resta qui"})
+	elif t.fase == "azione" and sotto(p):
+		var fatte := int(t.azioni)
+		var mx := max_azioni(p, t)
+		if not demoni_esorcizzabili(p).is_empty() and dadi_disponibili() > 0:
+			var nomi := []
+			for d in demoni_esorcizzabili(p):
+				nomi.append(Dati.demone(d).nome)
+			if fatte < mx and (fatte == 0 or potere(p, "blu_0") or potere(p, "blu_1")):
+				o.append({"id": "esorcizza_demone", "t": "Esorcismo nelle catacombe contro " + " e ".join(nomi), "cata": qui})
+		o.append({"id": "basta", "t": "Nessuna azione" if fatte == 0 else "Basta azioni"})
+	elif t.fase == "fine" and sotto(p):
+		o.append({"id": "fine", "t": "Fine turno"})
+	elif t.fase == "inizio" and sotto(p):
+		for x in 9:
+			if x == qui:
+				o.append({"id": "m:%d" % x, "t": "Resta nella " + nome_cata(x), "cata": x})
+			elif x in adiacenti(qui) or potere(p, "rosso_1"):
+				o.append({"id": "m:%d" % x, "t": "Vai nella " + nome_cata(x), "cata": x})
 	elif t.fase == "inizio":
 		var vicine := adiacenti(qui)
 		var vola := potere(p, "rosso_1")
@@ -1355,7 +1444,7 @@ func opzioni_yang(t: Dictionary) -> Array:
 			"fuoco":
 				o.append({"id": "art:fuoco", "t": "Fuoco d'Artificio: aiuto di un'altra tessera"})
 	# lo Yin-Yang si può usare prima o dopo ogni passo
-	if b.yinyang:
+	if b.yinyang and not yinyang_bloccati():
 		if n_infestate() > 0:
 			o.append({"id": "yy_libera", "t": "Yin-Yang: libera una tessera infestata"})
 		var dist := false
@@ -1399,7 +1488,7 @@ func bersagli_esorcismo(p: int) -> Array:
 
 ## La tessera t può dare aiuto al Taoista p?
 func aiuto_possibile(t: int, p: int) -> bool:
-	if s.villaggio[t].inf:
+	if s.villaggio[t].inf or ombra_su_tessera(t):
 		return false
 	match String(s.villaggio[t].id):
 		"casa_te": return true
@@ -1414,6 +1503,7 @@ func aiuto_possibile(t: int, p: int) -> bool:
 					return true
 			return false
 		"cimitero": return (int(s.n_taoisti) > 1 and not taoisti_morti().is_empty()) or (s.get("luna", false) and not s.villici_morti.is_empty() and puo_ricevere_villico(t, true))
+		"calligrafo": return segreto()
 		"kungfu": return dadi_disponibili() > 0 and (not _bersagli_kungfu(p, "plancia").is_empty() or not _bersagli_kungfu(p, "nero").is_empty())
 		"guardiano":
 			for x in fantasmi_in_gioco():
@@ -1436,10 +1526,30 @@ func _yang_risposta(t: Dictionary, r: String) -> void:
 			_sposta_villico(int(b.tessera), x)
 		if x != int(b.tessera):
 			b.tessera = x
-			_diario("%s va a %s." % [nome_plancia(p), nome_tessera(x)])
+			_diario("%s va: %s." % [nome_plancia(p), nome_luogo(p)])
 			_evento({"e": "muovi", "p": p, "t": x})
+		t.fase = "livello" if segreto() and s.cata[x].scala else "azione"
+		s.pila.append(t)
+		return
+	if r == "scendi" or r == "sali":
+		b.sotto = r == "scendi"
+		_diario("%s %s per la scala: %s." % [nome_plancia(p), "scende" if b.sotto else "sale", nome_luogo(p)])
+		_evento({"e": "muovi", "p": p, "t": int(b.tessera), "livello": true})
 		t.fase = "azione"
 		s.pila.append(t)
+		return
+	if r == "resta_livello":
+		t.fase = "azione"
+		s.pila.append(t)
+		return
+	if r == "esorcizza_demone" or r == "n_esorcizza_demone":
+		if r == "n_esorcizza_demone":
+			_usa_segnalino(p, "blu", t)
+			t["blu_neutro"] = true
+		t.azioni = int(t.azioni) + 1
+		t.tipi.append("e")
+		s.pila.append(t)
+		_poi([{"k": "esorcizza_demone", "p": p}])
 		return
 	match r:
 		"mantra", "n_mantra":
@@ -1797,7 +1907,7 @@ func _applica_esorcismo(t: Dictionary, id: String) -> void:
 			continue
 		var chi := [p] + _altri_vivi(p)
 		for q in chi:
-			if int(plancia(q).tessera) != int(plancia(p).tessera):
+			if not stesso_luogo(p, q):
 				continue
 			var usa := mini(n, int(plancia(q).tao[col]))
 			if usa > 0:
@@ -1808,7 +1918,7 @@ func _applica_esorcismo(t: Dictionary, id: String) -> void:
 	var ncr := int(c.get("cristalli", 0))
 	if ncr > 0:
 		for q in [p] + _altri_vivi(p):
-			if int(plancia(q).tessera) != int(plancia(p).tessera):
+			if not stesso_luogo(p, q):
 				continue
 			var usa := mini(ncr, int(plancia(q).get("cristalli", 0)))
 			plancia(q).cristalli = int(plancia(q).get("cristalli", 0)) - usa
@@ -1954,6 +2064,8 @@ func _t_aiuto(t: Dictionary) -> void:
 			_aiuto_padiglione(t, r)
 		"kungfu":
 			_aiuto_kungfu(t, r)
+		"calligrafo":
+			_aiuto_calligrafo(t, r)
 
 func _aiuto_padiglione(t: Dictionary, r: String) -> void:
 	var p := int(t.p)
@@ -2730,3 +2842,1026 @@ func _aiuto_kungfu(t: Dictionary, r: String) -> void:
 	s.cristalli = int(s.cristalli) + int(cst.get("cristalli", 0))
 	for x in bers:
 		_poi([{"k": "scarta", "p": x[0], "s": x[1], "modo": "kungfu", "a": p}])
+
+# ============================================================ Black Secret (espansione): Wu-Feng giocato da qualcuno
+
+const WU := 4                       # il "posto" di chi gioca Wu-Feng
+const SLOT_PIRAMIDE := [4, 3, 2, 1]
+const MANO_MALEDIZIONI := [5, 4, 3, 2]
+const DEMONI := ["cercatore", "scavatore", "becchino"]
+
+func segreto() -> bool:
+	return s.get("segreto", false)
+
+func _prepara_segreto(livello: String, n: int, base: Array) -> Array:
+	s.segreto = true
+	var cat := Dati.catacombe()
+	s.cata = []
+	for i in 9:
+		s.cata.append({"col": cat.colori[i], "pila": [], "scala": true})
+	for liv in n:
+		var strato: Array = cat.strati[liv].duplicate()
+		_mescola(strato)
+		for i in 9:
+			s.cata[i].pila.append(strato[i])
+	s.demoni = {"cercatore": -1, "scavatore": -1, "becchino": -1}
+	s.ombra = -1
+	s.ombra_sotto = false
+	s.urne = 0
+	s.scheletri = 3
+	# maledizioni: si pescano 5/4/3/2 segnalini per rango, il rango 1 è scoperto
+	s.mal_pool = {}
+	s.mal_mano = {}
+	for r in [1, 2, 3, 4]:
+		s.mal_pool[str(r)] = []
+		s.mal_mano[str(r)] = []
+	for m in Dati.maledizioni():
+		if m.get("luna", false) and not s.get("luna", false):
+			continue
+		s.mal_pool[str(int(m.rango))].append(String(m.id))
+	s.piramide = [0, 0, 0, 0]
+	s.pir_id = [[], [], [], []]
+	_pesca_maledizioni()
+	# Mantra di Sangue: 3 da 2 Qi, 2 da 3 Qi, 1 da 4 Qi
+	s.ms_pool = {"2": [], "3": [], "4": []}
+	for m in Dati.tutti_mantra_sangue():
+		if m.get("luna", false) and not s.get("luna", false):
+			continue
+		s.ms_pool[str(int(m.livello))].append(String(m.id))
+	for k in s.ms_pool:
+		_mescola(s.ms_pool[k])
+	s.ms = []
+	for liv in [2, 2, 2, 3, 3, 4]:
+		s.ms.append({"id": s.ms_pool[str(liv)].pop_back(), "liv": liv, "qi": 0})
+	# incarnazioni: un mazzo a parte in mano a Wu-Feng
+	var inc := []
+	for k in range(56, 66):
+		inc.append(k)
+	for k in range(100, 105):
+		inc.append(k)
+	if s.get("luna", false):
+		for k in range(82, 88):
+			inc.append(k)
+	_mescola(inc)
+	s.inc_mazzo = inc
+	s.inc_mano = []
+	for b in s.plance:
+		b.sotto = false
+		b.a_terra = b.get("a_terra", false)
+	# il Calligrafo nel villaggio
+	if indice_tessera("calligrafo") < 0:
+		var x := rng_int(9)
+		if s.get("luna", false) and x == int(s.portale):
+			x = (x + 1) % 9
+		s.villaggio[x].id = "calligrafo"
+	# il mazzo: base + 10 nuovi fantasmi, 50/45/40/35 carte
+	var tutti := base.duplicate()
+	for k in range(90, 100):
+		tutti.append(k)
+	_mescola(tutti)
+	return tutti.slice(0, {4: 50, 3: 45, 2: 40, 1: 35}[n])
+
+func _pesca_maledizioni() -> void:
+	for r in [1, 2, 3, 4]:
+		var pool: Array = s.mal_pool[str(r)]
+		for m in s.mal_mano[str(r)]:
+			pool.append(m)
+		s.mal_mano[str(r)] = []
+		_mescola(pool)
+		for i in MANO_MALEDIZIONI[r - 1]:
+			if not pool.is_empty():
+				s.mal_mano[str(r)].append(pool.pop_back())
+
+func nome_cata(i: int) -> String:
+	return "catacomba %s" % ["in alto a sinistra", "in alto", "in alto a destra", "a sinistra", "centrale", "a destra", "in basso a sinistra", "in basso", "in basso a destra"][i]
+
+func nome_luogo(p: int) -> String:
+	var b := plancia(p)
+	return nome_cata(int(b.tessera)) if b.get("sotto", false) else nome_tessera(int(b.tessera))
+
+func sotto(p: int) -> bool:
+	return segreto() and plancia(p).get("sotto", false)
+
+func stesso_luogo(p: int, q: int) -> bool:
+	return int(plancia(p).tessera) == int(plancia(q).tessera) and sotto(p) == sotto(q)
+
+func fratello(p: int) -> bool:
+	var b := plancia(p)
+	return segreto() and b.taoista and b.vivo and int(b.qi) == 1
+
+func ombra_su_tessera(t: int) -> bool:
+	return segreto() and int(s.ombra) == t and not s.ombra_sotto
+
+func demoni_in(i: int) -> Array:
+	var o := []
+	if not segreto():
+		return o
+	for d in DEMONI:
+		if int(s.demoni[d]) == i:
+			o.append(d)
+	return o
+
+func taoisti_sotto(i: int) -> Array:
+	var o := []
+	for q in taoisti_vivi():
+		if sotto(q) and int(plancia(q).tessera) == i:
+			o.append(q)
+	return o
+
+func qi_sui_mantra() -> int:
+	var n := 0
+	if segreto():
+		for m in s.ms:
+			n += int(m.qi)
+	return n
+
+func _maledizioni_libere() -> bool:
+	return effetto_in_gioco("permanente", "maledizioni_libere")
+
+func yinyang_bloccati() -> bool:
+	return segreto() and effetto_in_gioco("permanente", "no_yinyang")
+
+# ------------------------------------------------------------ Wu-Feng pesca una carta: a) villaggio b) demone c) maledizione
+
+func _t_wf_carta(t: Dictionary) -> void:
+	var c := int(t.c)
+	var a := int(t.a)
+	if c == 300:
+		_diario("Wu-Feng pesca un'Evocazione.")
+		_pesca_incarnazione()
+		_poi([{"k": "wf_gioca_inc", "a": a, "evocata": true}])
+		return
+	if t.has("r"):
+		var r: String = t.r
+		if r == "a":
+			_poi([{"k": "scegli_spazio", "a": a, "c": c, "chi": WU}])
+		elif r.begins_with("b:"):
+			s.scarti.append(c)
+			_poi([{"k": "evoca_demone", "d": r.substr(2)}])
+		elif r.begins_with("m:"):
+			s.scarti.append(c)
+			_poi([{"k": "lancia_maledizione", "m": r.substr(2), "a": a}])
+		return
+	var o := [{"id": "a", "t": "Mettilo nel villaggio", "carta": c}]
+	var res := 0
+	for v in Dati.resistenza(c).values():
+		res += int(v)
+	if int(s.ombra) < 0:
+		for d in DEMONI:
+			if int(s.demoni[d]) == -1 and int(Dati.demone(d).costo) <= res:
+				o.append({"id": "b:" + d, "t": "Evoca il %s nelle catacombe (costo %d)" % [Dati.demone(d).nome, int(Dati.demone(d).costo)]})
+	for m in maledizioni_lanciabili(String(Dati.carta(c).get("colore", "nero"))):
+		var md := Dati.maledizione(m)
+		o.append({"id": "m:" + m, "t": "Maledizione di rango %d: %s" % [int(md.rango), md.desc], "maledizione": m})
+	if o.size() == 1:
+		_poi([{"k": "scegli_spazio", "a": a, "c": c, "chi": WU}])
+		return
+	_chiedi(t, WU, "wf_carta", "Wu-Feng ha pescato %s: che cosa ne fa?" % Dati.nome(c), o)
+	s.domanda["carta"] = c
+
+func maledizioni_lanciabili(col: String) -> Array:
+	var o := []
+	var libero := col == "nero" or col == "qualunque" or _maledizioni_libere()
+	for r in [1, 2, 3, 4]:
+		if not rango_libero(r):
+			continue
+		for m in s.mal_mano[str(r)]:
+			if libero or String(Dati.maledizione(m).colore) == col:
+				o.append(m)
+	return o
+
+func rango_libero(r: int) -> bool:
+	var n: Array = s.piramide
+	if int(n[r - 1]) >= SLOT_PIRAMIDE[r - 1]:
+		return false
+	return r == 1 or int(n[r - 2]) >= int(n[r - 1]) + 2
+
+func _pesca_incarnazione() -> void:
+	if s.inc_mazzo.is_empty():
+		return
+	var c := int(s.inc_mazzo.pop_back())
+	s.inc_mano.append(c)
+	_diario("Wu-Feng prende in mano un'incarnazione.")
+	_evento({"e": "wf_mano"})
+
+func _t_wf_gioca_inc(t: Dictionary) -> void:
+	if s.inc_mano.is_empty():
+		return
+	if t.has("r"):
+		var c := int(String(t.r).substr(2))
+		s.inc_mano.erase(c)
+		if not t.get("evocata", false):
+			s.inc_totali = int(s.inc_totali) + 1
+		_diario("Wu-Feng scatena %s!" % Dati.nome(c))
+		_poi([{"k": "scegli_spazio", "a": int(t.a), "c": c, "chi": WU}])
+		return
+	if s.inc_mano.size() == 1:
+		t["r"] = "i:%d" % int(s.inc_mano[0])
+		_t_wf_gioca_inc(t)
+		return
+	var o := []
+	for c in s.inc_mano:
+		o.append({"id": "i:%d" % int(c), "t": Dati.nome(int(c)), "carta": int(c)})
+	_chiedi(t, WU, "wf_incarnazione", "Quale incarnazione mette in gioco Wu-Feng?", o)
+
+func _t_evoca_demone(t: Dictionary) -> void:
+	var d: String = t.d
+	if t.has("r"):
+		var i := int(String(t.r).substr(2))
+		s.demoni[d] = i
+		_diario("Wu-Feng evoca il %s nella %s." % [Dati.demone(d).nome, nome_cata(i)])
+		_evento({"e": "demone", "d": d, "i": i})
+		return
+	var o := []
+	for i in Dati.catacombe().ingressi:
+		o.append({"id": "c:%d" % int(i), "t": "Ingresso: " + nome_cata(int(i)), "cata": int(i)})
+	_chiedi(t, WU, "wf_ingresso", "Da quale ingresso entra il %s?" % Dati.demone(d).nome, o)
+
+# ------------------------------------------------------------ maledizioni
+
+func _t_lancia_maledizione(t: Dictionary) -> void:
+	var m: String = t.m
+	var md := Dati.maledizione(m)
+	var r := int(md.rango)
+	s.mal_mano[str(r)].erase(m)
+	s.mal_pool[str(r)].append(m)
+	s.piramide[r - 1] = int(s.piramide[r - 1]) + 1
+	s.pir_id[r - 1].append(m)
+	_diario("Wu-Feng lancia una maledizione: %s" % md.desc)
+	_evento({"e": "wf_maledizione", "m": m})
+	var l := [{"k": "effetto_wf", "e": String(md.e), "a": int(t.get("a", s.turno_di))}]
+	if r == 4:
+		l.append({"k": "rinnova_maledizioni"})
+	_poi(l)
+
+func _t_rinnova_maledizioni(_t: Dictionary) -> void:
+	s.piramide = [0, 0, 0, 0]
+	s.pir_id = [[], [], [], []]
+	_pesca_maledizioni()
+	_diario("La piramide delle maledizioni è completa: Wu-Feng pesca nuove maledizioni.")
+
+## Gli effetti decisi da Wu-Feng (maledizioni, segnalini delle catacombe, carte)
+func _t_effetto_wf(t: Dictionary) -> void:
+	var e: String = t.e
+	var a := int(t.get("a", s.turno_di))
+	var r: String = t.get("r", "")
+	var vivi := taoisti_vivi()
+	if vivi.is_empty():
+		return
+	match e:
+		"tao1", "tao2":
+			var con := []
+			for q in vivi:
+				if _tot_tao(q) > 0:
+					con.append(q)
+			if con.is_empty():
+				return
+			if r == "":
+				_chiedi_taoista(t, con, "Quale Taoista scarta i Tao?")
+				return
+			var q := int(r.substr(2))
+			for i in (1 if e == "tao1" else 2):
+				var mx := ""
+				for c in Dati.COLORI_TAO:
+					if int(plancia(q).tao[c]) > 0 and (mx == "" or int(plancia(q).tao[c]) > int(plancia(q).tao[mx])):
+						mx = c
+				if mx != "":
+					_rendi_tao(plancia(q), mx)
+			_diario("%s perde dei segnalini Tao." % nome_plancia(q))
+		"qi1":
+			if r == "":
+				_chiedi_taoista(t, vivi, "Quale Taoista perde 1 Qi?")
+				return
+			_poi([{"k": "perdi_qi", "p": int(r.substr(2))}])
+		"a_terra":
+			if r == "":
+				_chiedi_taoista(t, vivi, "Quale Taoista finisce a terra?")
+				return
+			plancia(int(r.substr(2))).a_terra = true
+			_diario("%s finisce a terra." % nome_plancia(int(r.substr(2))))
+		"via_yinyang":
+			var con := []
+			for q in vivi:
+				if plancia(q).yinyang:
+					con.append(q)
+			if con.is_empty():
+				return
+			if r == "":
+				_chiedi_taoista(t, con, "Quale Taoista perde lo Yin-Yang?")
+				return
+			plancia(int(r.substr(2))).yinyang = false
+			_diario("%s perde lo Yin-Yang." % nome_plancia(int(r.substr(2))))
+		"dado1", "dado2":
+			if r == "":
+				_chiedi_taoista(t, vivi, "Contro quale Taoista si tira il dado della maledizione?")
+				return
+			var q := int(r.substr(2))
+			var tt := int(plancia(q).tessera)
+			for i in (1 if e == "dado1" else 2):
+				_poi([{"k": "maledizione", "a": q, "t": tt}])
+		"mantra_qi1", "mantra_tutti", "mantra_via":
+			var o := []
+			for i in s.ms.size():
+				if e == "mantra_via" or int(s.ms[i].qi) > 0:
+					o.append({"id": "ms:%d" % i, "t": "%s (%d/%d Qi)" % [Dati.mantra_sangue(s.ms[i].id).desc, int(s.ms[i].qi), int(s.ms[i].liv)], "mantra": i})
+			if o.is_empty():
+				return
+			if r == "":
+				_chiedi(t, WU, "wf_bersaglio", "Quale Mantra di Sangue colpisce Wu-Feng?", o)
+				return
+			var i := int(r.substr(3))
+			if e == "mantra_qi1":
+				s.ms[i].qi = int(s.ms[i].qi) - 1
+			elif e == "mantra_tutti":
+				s.ms[i].qi = 0
+			else:
+				_sostituisci_mantra(i)
+			_diario("Wu-Feng indebolisce i Mantra di Sangue.")
+		"scala1", "scala2":
+			var o := []
+			for i in 9:
+				if s.cata[i].scala:
+					o.append({"id": "c:%d" % i, "t": "Scala della " + nome_cata(i), "cata": i})
+			if o.is_empty():
+				return
+			if r == "":
+				_chiedi(t, WU, "wf_bersaglio", "Quale scala toglie Wu-Feng?", o)
+				return
+			s.cata[int(r.substr(2))].scala = false
+			s.cata[int(r.substr(2))]["tolta"] = true
+			_diario("Wu-Feng toglie la scala della %s." % nome_cata(int(r.substr(2))))
+			_evento({"e": "scala", "i": int(r.substr(2))})
+			if e == "scala2":
+				_poi([{"k": "effetto_wf", "e": "scala1", "a": a}])
+		"scheletri1", "ossa":
+			_poi([{"k": "piazza_scheletro", "n": 1}])
+		"scheletri2":
+			_poi([{"k": "piazza_scheletro", "n": 2}])
+		"scheletri3":
+			_poi([{"k": "piazza_scheletro", "n": 3}])
+		"fantasma":
+			_poi([{"k": "porta_fantasma", "a": int(s.turno_di)}])
+		"incarnazione_mano":
+			_pesca_incarnazione()
+		"incarnazione_gioca":
+			_pesca_incarnazione()
+			_poi([{"k": "wf_gioca_inc", "a": int(s.turno_di)}])
+		"via_ultima", "via_due":
+			for i in (1 if e == "via_ultima" else 2):
+				if s.mazzo.size() > 1 and int(s.mazzo[-1]) != 300:
+					s.mazzo.pop_back()
+			_diario("Wu-Feng toglie carte dal fondo del mazzo.")
+		"attiva_demone":
+			_poi([{"k": "azione_demone", "d": "?", "da": "effetto"}])
+		"tutti_demoni":
+			if int(s.ombra) >= 0:
+				return
+			var ing: Array = Dati.catacombe().ingressi
+			var j := 0
+			for d in DEMONI:
+				if int(s.demoni[d]) == -1:
+					s.demoni[d] = int(ing[j % ing.size()])
+					j += 1
+					_evento({"e": "demone", "d": d, "i": int(s.demoni[d])})
+			_diario("Wu-Feng evoca tutti i suoi demoni.")
+		"in_catacombe":
+			if r == "":
+				_chiedi_taoista(t, vivi, "Quale Taoista trascina Wu-Feng nelle catacombe?")
+				return
+			if not t.has("q"):
+				t["q"] = int(r.substr(2))
+				t.erase("r")
+				var o := []
+				for i in 9:
+					o.append({"id": "c:%d" % i, "t": nome_cata(i), "cata": i})
+				_chiedi(t, WU, "wf_bersaglio", "In quale catacomba?", o)
+				return
+			var q := int(t.q)
+			plancia(q).tessera = int(r.substr(2))
+			plancia(q).sotto = true
+			_diario("%s è trascinato nella %s." % [nome_plancia(q), nome_cata(int(r.substr(2)))])
+			_evento({"e": "muovi", "p": q, "t": int(r.substr(2))})
+		"sposta_fantasma":
+			var g := fantasmi_in_gioco()
+			var lib := []
+			for q in POSIZIONI:
+				lib += _spazi_liberi(q)
+			if g.is_empty() or lib.is_empty():
+				return
+			if r == "":
+				var o := []
+				for x in g:
+					o.append({"id": "s:%d:%d" % [x[0], x[1]], "t": Dati.nome(int(spazio(x[0], x[1]).c)), "spazio": x})
+				_chiedi(t, WU, "wf_bersaglio", "Quale fantasma sposta Wu-Feng?", o)
+				return
+			if not t.has("da"):
+				t["da"] = r
+				t.erase("r")
+				var o := []
+				for x in lib:
+					o.append({"id": "s:%d:%d" % [x[0], x[1]], "t": "%s, spazio %d" % [_maiuscola(plancia_di(x[0])), x[1] + 1], "spazio": x})
+				_chiedi(t, WU, "wf_bersaglio", "Dove lo sposta?", o)
+				return
+			var da := String(t.da).split(":")
+			var aa := r.split(":")
+			_sposta_fantasma(int(da[1]), int(da[2]), int(aa[1]), int(aa[2]))
+		"dagli_scarti":
+			var o := []
+			for c in s.scarti:
+				if not Dati.e_incarnazione(int(c)) and int(c) != 300:
+					o.append({"id": "g:%d" % int(c), "t": Dati.nome(int(c)), "carta": int(c)})
+			if o.is_empty():
+				return
+			if r == "":
+				_chiedi(t, WU, "wf_bersaglio", "Quale fantasma degli scarti torna nel villaggio?", o)
+				return
+			var c := int(r.substr(2))
+			s.scarti.erase(c)
+			_poi([{"k": "scegli_spazio", "a": int(s.turno_di), "c": c, "chi": WU}])
+		"scava_pila":
+			var o := []
+			for i in 9:
+				if not s.cata[i].pila.is_empty():
+					o.append({"id": "c:%d" % i, "t": "Pila della %s (%d)" % [nome_cata(i), s.cata[i].pila.size()], "cata": i})
+			if o.is_empty():
+				return
+			if r == "":
+				_chiedi(t, WU, "wf_bersaglio", "Quale pila delle catacombe svuota Wu-Feng?", o)
+				return
+			var i := int(r.substr(2))
+			var pila: Array = s.cata[i].pila
+			var urne := pila.count("urna")
+			s.cata[i].pila = []
+			_diario("Wu-Feng svuota la pila della %s." % nome_cata(i))
+			_evento({"e": "scava", "i": i, "s": "terra"})
+			for j in urne:
+				_poi([{"k": "segnalino_cata", "s": "urna", "i": i, "d": ""}])
+		"infesta_qi":
+			if r == "":
+				var o := []
+				for x in 9:
+					if not s.villaggio[x].inf:
+						o.append({"id": "t:%d" % x, "t": nome_tessera(x), "tessera": x})
+				if o.is_empty():
+					return
+				_chiedi(t, WU, "wf_bersaglio", "Quale tessera infesta Wu-Feng?", o)
+				return
+			_poi([{"k": "infesta", "t": int(r.substr(2))}, {"k": "effetto_wf", "e": "qi1", "a": a}])
+		"maledizione_libera", "tavoletta":
+			var lan := maledizioni_lanciabili("qualunque")
+			if lan.is_empty():
+				return
+			if r == "":
+				var o := []
+				for m in lan:
+					var md := Dati.maledizione(m)
+					o.append({"id": "m:" + m, "t": "Rango %d: %s" % [int(md.rango), md.desc], "maledizione": m})
+				o.append({"id": "no", "t": "Nessuna maledizione"})
+				_chiedi(t, WU, "wf_maledizione", "Wu-Feng può lanciare una maledizione di qualunque colore.", o)
+				return
+			if r != "no":
+				_poi([{"k": "lancia_maledizione", "m": r.substr(2), "a": a}])
+		"luna_villico":
+			if s.get("luna", false) and not villici_visibili().is_empty():
+				var x: int = villici_visibili()[0]
+				for y in adiacenti(x):
+					if puo_ricevere_villico(y):
+						_sposta_villico(x, y)
+						break
+		"luna_cristallo":
+			if s.get("luna", false):
+				for i in 4:
+					if s.ricettacoli[i]:
+						s.ricettacoli[i] = false
+						s.cristalli = int(s.cristalli) + 1
+						_diario("Wu-Feng toglie un cristallo da un ricettacolo.")
+						break
+		"luna_uccidi":
+			if s.get("luna", false):
+				_poi([{"k": "uccidi_scelto", "a": WU, "perche": "Maledizione di Wu-Feng"}])
+		"luna_portale":
+			if s.get("luna", false) and int(s.portale) >= 0:
+				s.portale = rng_int(9)
+				_diario("Wu-Feng sposta il Portale su %s." % nome_tessera(int(s.portale)))
+
+func _chiedi_taoista(t: Dictionary, chi: Array, testo: String) -> void:
+	if chi.size() == 1:
+		t["r"] = "q:%d" % int(chi[0])
+		s.pila.append(t)
+		return
+	var o := []
+	for q in chi:
+		o.append({"id": "q:%d" % int(q), "t": "%s (%d Qi)" % [nome_plancia(int(q)), int(plancia(int(q)).qi)], "plancia": int(q)})
+	_chiedi(t, WU, "wf_bersaglio", testo, o)
+
+func _tot_tao(q: int) -> int:
+	var n := 0
+	for c in Dati.COLORI_TAO:
+		n += int(plancia(q).tao[c])
+	return n
+
+func _t_piazza_scheletro(t: Dictionary) -> void:
+	var n := int(t.n)
+	if n <= 0 or int(s.scheletri) <= 0:
+		return
+	var lib := []
+	for q in POSIZIONI:
+		for k in 3:
+			if int(spazio(q, k).c) == 0:
+				lib.append([q, k])
+	if lib.is_empty():
+		_diario("Non c'è posto per lo scheletro: il Taoista di turno perde 1 Qi.")
+		_poi([{"k": "perdi_qi", "p": int(s.turno_di)}])
+		return
+	if t.has("r"):
+		var pz := String(t.r).split(":")
+		var p := int(pz[1])
+		var k := int(pz[2])
+		s.scheletri = int(s.scheletri) - 1
+		t.erase("r")
+		t.n = n - 1
+		s.pila.append(t)
+		var sp := spazio(p, k)
+		if sp.buddha:
+			sp.buddha = false
+			s.buddha_tempio = int(s.buddha_tempio) + 1
+			s.scheletri = int(s.scheletri) + 1
+			_diario("Lo scheletro finisce su un Buddha e va in polvere.")
+			return
+		sp.c = 200
+		sp.inf = -1
+		sp.dado = false
+		_diario("Uno scheletro si alza davanti alla %s." % plancia_di(p))
+		_evento({"e": "piazza", "c": 200, "p": p, "s": k})
+		return
+	var o := []
+	for x in lib:
+		o.append({"id": "s:%d:%d" % [x[0], x[1]], "t": "%s, spazio %d%s" % [_maiuscola(plancia_di(x[0])), x[1] + 1, " (Buddha)" if spazio(x[0], x[1]).buddha else ""], "spazio": x})
+	_chiedi(t, WU, "wf_scheletro", "Dove mette lo scheletro Wu-Feng?", o)
+
+# ------------------------------------------------------------ fase dei demoni
+
+func _t_fase_demoni(t: Dictionary) -> void:
+	var l := []
+	if int(s.ombra) >= 0:
+		l.append({"k": "azione_demone", "d": "ombra"})
+	else:
+		for d in DEMONI:
+			if int(s.demoni[d]) >= 0:
+				l.append({"k": "azione_demone", "d": d})
+	_poi(l)
+
+func _t_azione_demone(t: Dictionary) -> void:
+	var d: String = t.d
+	if d == "?":
+		var o := []
+		if int(s.ombra) >= 0:
+			t.d = "ombra"
+		else:
+			for x in DEMONI:
+				if int(s.demoni[x]) >= 0:
+					o.append({"id": "d:" + x, "t": Dati.demone(x).nome})
+			if o.is_empty():
+				return
+			if not t.has("r"):
+				if o.size() == 1:
+					t.d = o[0].id.substr(2)
+				else:
+					_chiedi(t, WU, "wf_demone", "Quale demone attiva Wu-Feng?", o)
+					return
+			else:
+				t.d = String(t.r).substr(2)
+				t.erase("r")
+		d = t.d
+	if d == "ombra":
+		_azione_ombra(t)
+		return
+	var i := int(s.demoni[d])
+	if i < 0:
+		return
+	if t.has("r"):
+		var r: String = t.r
+		if r == "scava":
+			var tok: String = s.cata[i].pila.pop_back()
+			_evento({"e": "scava", "i": i, "s": tok})
+			_diario("Il %s scava nella %s e trova: %s." % [Dati.demone(d).nome, nome_cata(i), Dati.catacombe().segnalini[tok].nome])
+			_poi([{"k": "segnalino_cata", "s": tok, "i": i, "d": d}])
+		elif r.begins_with("c:"):
+			s.demoni[d] = int(r.substr(2))
+			_diario("Il %s si sposta nella %s." % [Dati.demone(d).nome, nome_cata(int(r.substr(2)))])
+			_evento({"e": "demone", "d": d, "i": int(r.substr(2))})
+		return
+	var o := []
+	if not s.cata[i].pila.is_empty() and (taoisti_sotto(i).is_empty() or d == "scavatore"):
+		o.append({"id": "scava", "t": "Scava (%d segnalini)" % s.cata[i].pila.size(), "cata": i})
+	for x in adiacenti(i):
+		o.append({"id": "c:%d" % x, "t": "Vai nella " + nome_cata(x), "cata": x})
+	o.append({"id": "c:%d" % i, "t": "Resta fermo"})
+	_chiedi(t, WU, "wf_demone_azione", "Che cosa fa il %s?" % Dati.demone(d).nome, o)
+	s.domanda["demone"] = d
+
+func _azione_ombra(t: Dictionary) -> void:
+	var x := int(s.ombra)
+	var giu: bool = s.ombra_sotto
+	var qui := []
+	for q in taoisti_vivi():
+		if int(plancia(q).tessera) == x and sotto(q) == giu:
+			qui.append(q)
+	if t.has("r"):
+		var r: String = t.r
+		if r == "attacca":
+			var f := _tira_tao(3)
+			_evento({"e": "dadi", "f": f, "p": -1})
+			var neri := f.count("nero")
+			_diario("L'Ombra di Wu-Feng attacca: %s." % _testo_facce(f))
+			for j in neri:
+				var bersaglio: int = qui[j % qui.size()]
+				_poi([{"k": "perdi_qi", "p": bersaglio}])
+		elif r == "tessera":
+			_diario("L'Ombra di Wu-Feng maledice la tessera %s." % nome_tessera(x))
+			_poi([{"k": "maledizione", "a": int(s.turno_di), "t": x}])
+		elif r.begins_with("v:") or r.begins_with("c:"):
+			s.ombra = int(r.substr(2))
+			s.ombra_sotto = r.begins_with("c:")
+			_diario("L'Ombra di Wu-Feng si sposta: %s." % (nome_cata(int(s.ombra)) if s.ombra_sotto else nome_tessera(int(s.ombra))))
+			_evento({"e": "ombra", "i": int(s.ombra), "sotto": s.ombra_sotto})
+		return
+	var o := []
+	if not qui.is_empty():
+		o.append({"id": "attacca", "t": "Attacca i Taoisti qui (3 dadi, ogni nero toglie 1 Qi)"})
+	elif not giu:
+		o.append({"id": "tessera", "t": "Maledici la tessera (dado della maledizione)"})
+	for y in 9:
+		if y != x or giu:
+			o.append({"id": "v:%d" % y, "t": "Vai su " + nome_tessera(y), "tessera": y})
+		if y != x or not giu:
+			o.append({"id": "c:%d" % y, "t": "Vai nella " + nome_cata(y), "cata": y})
+	_chiedi(t, WU, "wf_ombra", "Che cosa fa l'Ombra di Wu-Feng?", o)
+
+func _t_segnalino_cata(t: Dictionary) -> void:
+	var tok: String = t.s
+	var d: String = t.d
+	var a := int(s.turno_di)
+	match tok:
+		"buddha":
+			if d != "" and d != "ombra":
+				s.demoni[d] = -1
+				_diario("Il Buddha scaccia il %s." % Dati.demone(d).nome)
+				_evento({"e": "demone", "d": d, "i": -1})
+		"sangue_suling":
+			_poi([{"k": "ms_scegli", "modo": "attiva", "a": a}])
+		"sangue_giusto":
+			if qi_in_riserva() > 0:
+				_poi([{"k": "ms_scegli", "modo": "qi", "a": a}])
+		"tavoletta":
+			_poi([{"k": "effetto_wf", "e": "tavoletta", "a": a}])
+		"ossa":
+			_poi([{"k": "piazza_scheletro", "n": 1}])
+		"urna":
+			s.urne = int(s.urne) + 1
+			_diario("Wu-Feng trova un'urna con le sue ceneri (%d su 3)." % int(s.urne))
+			_evento({"e": "urna", "n": int(s.urne)})
+			_pesca_incarnazione()
+			if int(s.urne) >= 3 and int(s.ombra) < 0:
+				s.ombra = int(t.i)
+				s.ombra_sotto = true
+				for x in DEMONI:
+					s.demoni[x] = -2
+				_diario("LE TRE URNE SONO RIUNITE: l'Ombra di Wu-Feng entra in gioco, invincibile!")
+				_evento({"e": "ombra", "i": int(t.i), "sotto": true, "nasce": true})
+
+# ------------------------------------------------------------ Mantra di Sangue
+
+func _sostituisci_mantra(i: int) -> void:
+	var liv := int(s.ms[i].liv)
+	var pool: Array = s.ms_pool[str(liv)]
+	s.ms[i].qi = 0
+	if pool.is_empty():
+		return
+	s.ms[i].id = pool.pop_back()
+
+## Il Qi perso finisce su un Mantra di Sangue a scelta di chi lo perde
+func _t_ms_scegli(t: Dictionary) -> void:
+	var modo: String = t.modo
+	var chi := decisore(int(t.get("a", -1)))
+	if t.has("r"):
+		var i := int(String(t.r).substr(3))
+		if modo == "attiva":
+			_attiva_mantra(i, chi)
+			return
+		s.ms[i].qi = int(s.ms[i].qi) + 1
+		_evento({"e": "ms", "i": i})
+		if int(s.ms[i].qi) >= int(s.ms[i].liv):
+			_attiva_mantra(i, chi)
+		return
+	var o := []
+	for i in s.ms.size():
+		var m := Dati.mantra_sangue(s.ms[i].id)
+		o.append({"id": "ms:%d" % i, "t": "[%d/%d] %s" % [int(s.ms[i].qi), int(s.ms[i].liv), m.desc], "mantra": i})
+	var testo := "Su quale Mantra di Sangue va il Qi?" if modo != "attiva" else "Sangue di Su-Ling: quale Mantra di Sangue attivi?"
+	_chiedi(t, chi, "ms_qi" if modo != "attiva" else "ms_attiva", testo, o)
+
+func _attiva_mantra(i: int, chi: int) -> void:
+	var id: String = s.ms[i].id
+	_diario("Si attiva il Mantra di Sangue: %s" % Dati.mantra_sangue(id).desc)
+	_evento({"e": "ms_attiva", "i": i})
+	_sostituisci_mantra(i)
+	_poi([{"k": "effetto_ms", "e": id, "a": chi}])
+
+func _t_effetto_ms(t: Dictionary) -> void:
+	var e: String = t.e
+	var a := int(t.a)
+	var r: String = t.get("r", "")
+	var vivi := taoisti_vivi()
+	match e:
+		"scale2":
+			var n := 0
+			for i in 9:
+				if n < 2 and not s.cata[i].scala and s.cata[i].get("tolta", false) and not s.villaggio[i].inf:
+					s.cata[i].scala = true
+					s.cata[i].tolta = false
+					n += 1
+					_evento({"e": "scala", "i": i})
+			_diario("Tornano %d scale nelle catacombe." % n)
+		"fondo":
+			if not s.mazzo.is_empty():
+				s.mazzo.append(s.mazzo.pop_front())
+				_diario("La carta in cima al mazzo scivola in fondo.")
+		"qi1":
+			if r == "":
+				_chiedi_tao(t, a, vivi, "Chi guadagna 1 Qi?")
+				return
+			if qi_in_riserva() > 0:
+				var q := int(r.substr(2))
+				plancia(q).qi = int(plancia(q).qi) + 1
+				_evento({"e": "qi", "p": q, "d": 1})
+				_diario("%s guadagna 1 Qi." % nome_plancia(q))
+		"tao_mantra", "tao2_mantra":
+			if r == "":
+				_chiedi_tao(t, a, vivi, "Chi prende i Tao?")
+				return
+			var q := int(r.substr(2))
+			_poi([{"k": "premio_tao", "a": q, "n": 1 if e == "tao_mantra" else 2}, {"k": "mantra", "p": q}])
+		"scarta1", "scarta2":
+			var g := []
+			for x in fantasmi_in_gioco():
+				if not Dati.e_incarnazione(int(spazio(x[0], x[1]).c)):
+					g.append(x)
+			if g.is_empty():
+				return
+			if r == "":
+				var o := []
+				for x in g:
+					o.append({"id": "s:%d:%d" % [x[0], x[1]], "t": Dati.nome(int(spazio(x[0], x[1]).c)), "spazio": x})
+				_chiedi(t, a, "ms_bersaglio", "Quale fantasma va negli scarti?", o)
+				return
+			var pz := r.split(":")
+			_poi([{"k": "scarta", "p": int(pz[1]), "s": int(pz[2]), "modo": "mantra", "a": a}])
+			if e == "scarta2":
+				_poi([{"k": "effetto_ms", "e": "scarta1", "a": a}])
+		"via_maledizione":
+			for liv in [4, 3, 2, 1]:
+				if int(s.piramide[liv - 1]) > 0 and (liv == 4 or int(s.piramide[liv]) == 0 or int(s.piramide[liv - 1]) > int(s.piramide[liv]) + 1):
+					s.piramide[liv - 1] = int(s.piramide[liv - 1]) - 1
+					if not s.pir_id[liv - 1].is_empty():
+						s.pir_id[liv - 1].pop_back()
+					_diario("Una maledizione di rango %d lascia la piramide di Wu-Feng." % liv)
+					return
+		"teletrasporto", "sposta2":
+			if r == "":
+				_chiedi_tao(t, a, vivi, "Quale Taoista si sposta?")
+				return
+			if not t.has("q"):
+				t["q"] = int(r.substr(2))
+				t.erase("r")
+				var o := []
+				for y in 9:
+					o.append({"id": "v:%d" % y, "t": nome_tessera(y), "tessera": y})
+					o.append({"id": "c:%d" % y, "t": _maiuscola(nome_cata(y)), "cata": y})
+				_chiedi(t, a, "ms_bersaglio", "Dove va?", o)
+				return
+			var q := int(t.q)
+			plancia(q).tessera = int(r.substr(2))
+			plancia(q).sotto = r.begins_with("c:")
+			plancia(q).a_terra = false
+			_diario("%s si sposta: %s." % [nome_plancia(q), nome_luogo(q)])
+			_evento({"e": "muovi", "p": q, "t": int(r.substr(2))})
+			if e == "sposta2" and not fantasmi_in_gioco().is_empty():
+				_poi([{"k": "sposta_fantasma_ms", "a": a}])
+		"scheletri_via":
+			for q in POSIZIONI:
+				for k in 3:
+					if int(spazio(q, k).c) == 200:
+						spazio(q, k).c = 0
+						s.scheletri = int(s.scheletri) + 1
+						_evento({"e": "esorcizza", "c": 200, "p": q, "s": k, "modo": "mantra"})
+			_diario("Tutti gli scheletri tornano polvere.")
+		"yinyang":
+			for q in vivi:
+				if not plancia(q).yinyang:
+					plancia(q).yinyang = true
+					_diario("%s riprende lo Yin-Yang." % nome_plancia(q))
+					return
+		"demone_via", "demoni_via":
+			for d in DEMONI:
+				if int(s.demoni[d]) >= 0:
+					s.demoni[d] = -1
+					_evento({"e": "demone", "d": d, "i": -1})
+					_diario("Il %s torna sulla plancia di Wu-Feng." % Dati.demone(d).nome)
+					if e == "demone_via":
+						return
+		"buddha2":
+			var n := 0
+			for q in POSIZIONI:
+				for k in 3:
+					var sp := spazio(q, k)
+					if n < 2 and int(s.buddha_tempio) > 0 and int(sp.c) == 0 and not sp.buddha:
+						sp.buddha = true
+						s.buddha_tempio = int(s.buddha_tempio) - 1
+						n += 1
+						_evento({"e": "buddha_posa", "p": q, "s": k})
+		"disinfesta":
+			for x in 9:
+				if s.villaggio[x].inf:
+					s.villaggio[x].inf = false
+					_evento({"e": "libera", "t": x})
+			_diario("Tutte le tessere del villaggio tornano attive.")
+		"condividi":
+			for q in vivi:
+				if not plancia(q).yinyang:
+					plancia(q).yinyang = true
+					break
+			var ord := vivi.duplicate()
+			ord.sort_custom(func(x, y): return int(plancia(x).qi) < int(plancia(y).qi))
+			for i in 2:
+				if qi_in_riserva() > 0 and not ord.is_empty():
+					var q: int = ord[i % ord.size()]
+					plancia(q).qi = int(plancia(q).qi) + 1
+			_diario("I Taoisti si dividono uno Yin-Yang e 2 Qi.")
+		"riciclo":
+			var g := []
+			for c in s.scarti:
+				if not Dati.e_incarnazione(int(c)) and int(c) != 300:
+					g.append(int(c))
+			g.sort_custom(func(x, y): return Dati.forza(x) < Dati.forza(y))
+			for i in mini(4, g.size()):
+				s.scarti.erase(g[i])
+				s.mazzo.append(g[i])
+			_diario("Quattro fantasmi degli scarti tornano in fondo al mazzo.")
+		"luna_salva1", "luna_salva1b", "luna_salva2":
+			if s.get("luna", false):
+				for i in (2 if e == "luna_salva2" else 1):
+					var x := int(s.portale)
+					if x < 0 or villico_in_cima(x) == "":
+						var vis := villici_visibili()
+						if vis.is_empty():
+							break
+						x = vis[0]
+					_poi([{"k": "salva_villico", "t": x, "a": a}])
+
+func _chiedi_tao(t: Dictionary, a: int, chi: Array, testo: String) -> void:
+	if chi.is_empty():
+		return
+	if chi.size() == 1:
+		t["r"] = "q:%d" % int(chi[0])
+		s.pila.append(t)
+		return
+	var o := []
+	for q in chi:
+		o.append({"id": "q:%d" % int(q), "t": "%s (%d Qi)" % [nome_plancia(int(q)), int(plancia(int(q)).qi)], "plancia": int(q)})
+	_chiedi(t, decisore(a), "ms_bersaglio", testo, o)
+
+func _t_sposta_fantasma_ms(t: Dictionary) -> void:
+	var r: String = t.get("r", "")
+	var lib := []
+	for q in POSIZIONI:
+		lib += _spazi_liberi(q)
+	if lib.is_empty():
+		return
+	if r == "":
+		var o := []
+		for x in fantasmi_in_gioco():
+			o.append({"id": "s:%d:%d" % [x[0], x[1]], "t": Dati.nome(int(spazio(x[0], x[1]).c)), "spazio": x})
+		_chiedi(t, decisore(int(t.a)), "ms_bersaglio", "Quale fantasma sposti?", o)
+		return
+	if not t.has("da"):
+		t["da"] = r
+		t.erase("r")
+		var o := []
+		for x in lib:
+			o.append({"id": "s:%d:%d" % [x[0], x[1]], "t": "%s, spazio %d" % [_maiuscola(plancia_di(x[0])), x[1] + 1], "spazio": x})
+		_chiedi(t, decisore(int(t.a)), "ms_bersaglio", "Dove lo metti?", o)
+		return
+	var da := String(t.da).split(":")
+	var aa := r.split(":")
+	_sposta_fantasma(int(da[1]), int(da[2]), int(aa[1]), int(aa[2]))
+
+# ------------------------------------------------------------ Taoisti nelle catacombe
+
+func scala_qui(p: int) -> bool:
+	var x := int(plancia(p).tessera)
+	return segreto() and s.cata[x].scala
+
+func demoni_esorcizzabili(p: int) -> Array:
+	if not sotto(p):
+		return []
+	return demoni_in(int(plancia(p).tessera))
+
+func requisito_demone(d: String, i: int) -> Dictionary:
+	var r := {}
+	r[String(s.cata[i].col)] = int(Dati.demone(d).resistenza)
+	return r
+
+## Esorcismo nelle catacombe: si tirano i dadi, poi si sceglie il demone
+func _t_esorcizza_demone(t: Dictionary) -> void:
+	var p := int(t.p)
+	var i := int(plancia(p).tessera)
+	if not t.has("facce"):
+		var n := dadi_disponibili()
+		t["facce"] = _tira_tao(n)
+		s.dadi = {"facce": t.facce, "p": p}
+		_evento({"e": "dadi", "f": t.facce, "p": p})
+		_diario("%s tira %d dadi nelle catacombe: %s." % [nome_plancia(p), n, _testo_facce(t.facce)])
+	if t.has("r"):
+		var r: String = t.r
+		if r == "fallisce":
+			_diario("Il demone resiste.")
+			_evento({"e": "fallito", "p": p})
+			return
+		var d := r.substr(2)
+		var cst := _costo_demone(p, d, i, t.facce)
+		for q in [p] + _altri_vivi(p):
+			if not stesso_luogo(p, q):
+				continue
+			for c in Dati.COLORI_TAO:
+				var usa := mini(int(cst.get(c, 0)), int(plancia(q).tao[c]))
+				_rendi_tao(plancia(q), c, usa)
+				cst[c] = int(cst.get(c, 0)) - usa
+		s.demoni[d] = -1
+		_diario("%s esorcizza il %s!" % [nome_plancia(p), Dati.demone(d).nome])
+		_evento({"e": "demone", "d": d, "i": -1, "esorcizzato": true, "da": i})
+		if d == "becchino":
+			_poi([{"k": "maledizione", "a": p, "t": i}])
+		return
+	var o := []
+	for d in demoni_in(i):
+		if _costo_demone(p, d, i, t.facce).get("_ok", false):
+			o.append({"id": "d:" + d, "t": "Esorcizza il %s" % Dati.demone(d).nome, "cata": i})
+	o.append({"id": "fallisce", "t": "Nessun demone" if o.is_empty() else "Rinuncia"})
+	_chiedi(t, p, "esorcismo_demone", "Quale demone esorcizzi?", o)
+
+func _costo_demone(p: int, d: String, i: int, facce: Array) -> Dictionary:
+	var col: String = s.cata[i].col
+	var serve := int(Dati.demone(d).resistenza)
+	var buoni := 0
+	for f in facce:
+		if f == col or f == "bianco":
+			buoni += 1
+	var manca := maxi(0, serve - buoni)
+	if manca == 0:
+		return {"_ok": true}
+	if d == "cercatore":
+		return {"_ok": false}
+	var ha := 0
+	for q in [p] + _altri_vivi(p):
+		if stesso_luogo(p, q) and not tao_bloccati():
+			ha += int(plancia(q).tao[col])
+	var o := {"_ok": ha >= manca}
+	o[col] = manca
+	return o
+
+## Calligrafo: cambia un Mantra di Sangue e/o mette 1 Qi della riserva su uno
+func _aiuto_calligrafo(t: Dictionary, r: String) -> void:
+	var p := int(t.p)
+	t["fase"] = "c"
+	var fatti: Array = t.get("fatti", [])
+	if r.begins_with("cm:"):
+		_sostituisci_mantra(int(r.substr(3)))
+		_diario("Il Calligrafo riscrive un Mantra di Sangue.")
+		fatti.append("cambia")
+	elif r.begins_with("qm:"):
+		var i := int(r.substr(3))
+		fatti.append("qi")
+		t["fatti"] = fatti
+		t.erase("r")
+		s.pila.append(t)
+		s.ms[i].qi = int(s.ms[i].qi) + 1
+		_evento({"e": "ms", "i": i})
+		if int(s.ms[i].qi) >= int(s.ms[i].liv):
+			_attiva_mantra(i, p)
+		return
+	elif r == "basta":
+		return
+	t["fatti"] = fatti
+	var o := []
+	for i in s.ms.size():
+		var m := Dati.mantra_sangue(s.ms[i].id)
+		if not "qi" in fatti and qi_in_riserva() > 0:
+			o.append({"id": "qm:%d" % i, "t": "1 Qi su: [%d/%d] %s" % [int(s.ms[i].qi), int(s.ms[i].liv), m.desc], "mantra": i})
+		if not "cambia" in fatti:
+			o.append({"id": "cm:%d" % i, "t": "Cambia: %s" % m.desc, "mantra": i})
+	if o.is_empty():
+		return
+	o.append({"id": "basta", "t": "Basta così"})
+	t.erase("r")
+	_chiedi(t, p, "calligrafo", "Calligrafo: che cosa fai con i Mantra di Sangue?", o)

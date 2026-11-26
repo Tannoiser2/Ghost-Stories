@@ -25,7 +25,10 @@ Si gioca su https://tannoiser2.github.io/Ghost-Stories/ (e nella ludoteca).
   colonne di luce, lanterne e nebbia; si ruota e si ingrandisce anche con le dita.
 - IA con pesi tarati da migliaia di partite automatiche (`tests/taratura.gd`, verifica in `tests/convalida.gd`).
 
-L'espansione Black Secret (un giocatore nei panni di Wu-Feng) non è ancora implementata.
+- **Espansione Black Secret**: Wu-Feng giocato da una persona, da un amico online o dal computer (indulgente o
+  spietato); demoni che scavano le catacombe in cerca delle tre urne, Ombra di Wu-Feng, scale, scheletri,
+  piramide delle maledizioni, Mantra di Sangue, Fratelli di Sangue, Calligrafo, 10 fantasmi e 5 incarnazioni nuove.
+  Si può giocare insieme a White Moon. Le carte dei Mantra di Sangue non sono nel modulo TTS: i loro testi sono scritti a parte.
 
 ## Struttura
 

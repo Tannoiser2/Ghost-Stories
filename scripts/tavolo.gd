@@ -19,6 +19,12 @@ const ICONA_INFESTANTE_Y := 193.0
 const PIETRA_POTERE := Vector2(167, 940)
 const ANGOLI := [0.0, PI / 2.0, PI, -PI / 2.0]
 const NOMI_POS := ["Sud", "Ovest", "Nord", "Est"]
+# Black Secret: catacombe nell'angolo in alto a destra, plancia di Wu-Feng in alto a sinistra
+const C_CATA := Vector2(575, -575)
+const LATO_CATA := 450.0
+const C_WF := Vector2(-575, -575)
+const LATO_WF := 450.0
+const DEMONI := ["cercatore", "scavatore", "becchino"]
 
 var s: Dictionary = {}               # lo stato del motore da disegnare
 var evidenzia: Array = []            # opzioni della domanda con tessera o spazio
@@ -79,6 +85,30 @@ func xf_plancia(pos: int) -> Transform2D:
 func centro_tessera(t: int) -> Vector2:
 	return Vector2((t % 3 - 1) * T, (t / 3 - 1) * T)
 
+func centro_cata(i: int) -> Vector2:
+	var c := LATO_CATA / 3.0
+	return C_CATA + Vector2((i % 3 - 1) * c, (i / 3 - 1) * c)
+
+## Dove sta il Taoista: tessera del villaggio o spazio delle catacombe
+func centro_luogo(p: int) -> Vector2:
+	var b: Dictionary = s.plance[p]
+	if b.get("sotto", false):
+		return centro_cata(int(b.tessera))
+	return centro_tessera(int(b.tessera))
+
+## Posizioni (sulla plancia di Wu-Feng larga 1374 px) degli spazi della piramide e delle urne
+func pos_piramide(r: int, j: int) -> Vector2:
+	var y: float = [655.0, 470.0, 285.0, 95.0][r]
+	var x0: float = [100.0, 195.0, 290.0, 385.0][r]
+	return C_WF + (Vector2(x0 + j * 190.0, y) / 1374.0 - Vector2(0.5, 0.5)) * LATO_WF
+
+func pos_urna(j: int) -> Vector2:
+	return C_WF + (Vector2(1215.0, 110.0 + j * 225.0) / 1374.0 - Vector2(0.5, 0.5)) * LATO_WF
+
+func pos_demone_wf(d: String) -> Vector2:
+	var x: float = {"cercatore": 138.0, "scavatore": 410.0, "becchino": 770.0, "ombra": 1150.0}[d]
+	return C_WF + (Vector2(x, 1100.0) / 1374.0 - Vector2(0.5, 0.5)) * LATO_WF
+
 func centro_spazio(p: int, k: int) -> Vector2:
 	return xf_plancia(p) * Vector2(SPAZI_X[k], SPAZIO_Y)
 
@@ -97,6 +127,8 @@ func _draw() -> void:
 		_disegna_plancia(p)
 	for t in 9:
 		_disegna_tessera(t)
+	if s.get("segreto", false):
+		_disegna_segreto()
 	_disegna_taoisti()
 	_disegna_evidenze()
 	draw_set_transform_matrix(Transform2D.IDENTITY)
@@ -284,13 +316,15 @@ func _disegna_taoisti() -> void:
 		var b: Dictionary = s.plance[p]
 		if not b.taoista:
 			continue
-		var t := int(b.tessera)
+		var t := int(b.tessera) + (10 if b.get("sotto", false) else 0)
 		if not per_tessera.has(t):
 			per_tessera[t] = []
 		per_tessera[t].append(p)
 	for t in per_tessera:
 		var l: Array = per_tessera[t]
-		var c := centro_tessera(t)
+		var c := centro_tessera(t) if t < 10 else centro_cata(t - 10)
+		if t >= 10:
+			c += Vector2(0, -20)
 		for i in l.size():
 			var off := Vector2.ZERO
 			if l.size() > 1:
@@ -321,6 +355,80 @@ func _figura(c: Vector2, col: String, vivo: bool, di_turno: bool) -> void:
 	if not vivo:
 		_croce(c, 26, Color(0.9, 0.1, 0.1), 7)
 
+## Black Secret: catacombe con scale, pile, demoni e Ombra; plancia di Wu-Feng con piramide e urne
+func _disegna_segreto() -> void:
+	var r := Rect2(C_CATA - Vector2(LATO_CATA, LATO_CATA) / 2.0, Vector2(LATO_CATA, LATO_CATA))
+	draw_rect(Rect2(r.position + Vector2(10, 14), r.size), Color(0, 0, 0, 0.5))
+	draw_texture_rect(Stile.tex("res://assets/bs/catacombe.webp"), r, false, Color(0.85, 0.85, 0.85))
+	draw_rect(r, Color(0.25, 0.2, 0.15), false, 6)
+	var lato := LATO_CATA / 3.0
+	var ingressi: Array = Dati.catacombe().get("ingressi", [])
+	for i in 9:
+		var c := centro_cata(i)
+		var cata: Dictionary = s.cata[i]
+		if i in ingressi:
+			draw_rect(Rect2(c - Vector2(lato, lato) / 2.0, Vector2(lato, lato)).grow(-4), Color(0.9, 0.25, 0.2, 0.7), false, 4)
+		# la scala: due montanti e i pioli
+		if cata.scala:
+			var a := c + Vector2(-58, -50)
+			var col := Color(0.55, 0.38, 0.2)
+			draw_line(a, a + Vector2(0, 54), col, 5)
+			draw_line(a + Vector2(18, 0), a + Vector2(18, 54), col, 5)
+			for j in 4:
+				draw_line(a + Vector2(0, 8 + j * 13), a + Vector2(18, 8 + j * 13), col, 3)
+		# la pila dei segnalini, coperta
+		var pila: Array = cata.pila
+		if not pila.is_empty():
+			var pp := c + Vector2(38, -38)
+			for j in pila.size():
+				var q := pp + Vector2(-j * 4, -j * 4)
+				draw_texture_rect(Stile.tex("res://assets/bs/cat_dorso_%d.webp" % (j + 1)), Rect2(q - Vector2(26, 26), Vector2(52, 52)), false)
+			_numero(pp + Vector2(22, 22), str(pila.size()))
+		# i demoni
+		var dd := []
+		for d in DEMONI:
+			if int(s.demoni[d]) == i:
+				dd.append(d)
+		if int(s.ombra) == i and s.ombra_sotto:
+			dd.append("ombra")
+		for j in dd.size():
+			var q := c + Vector2(-30 + j * 46, 34)
+			_ritratto(q, dd[j], 30)
+	# l'Ombra sopra il villaggio
+	if int(s.ombra) >= 0 and not s.ombra_sotto:
+		_ritratto(centro_tessera(int(s.ombra)) + Vector2(-60, -60), "ombra", 40)
+	# plancia di Wu-Feng
+	var w := Rect2(C_WF - Vector2(LATO_WF, LATO_WF) / 2.0, Vector2(LATO_WF, LATO_WF))
+	draw_rect(Rect2(w.position + Vector2(10, 14), w.size), Color(0, 0, 0, 0.5))
+	draw_texture_rect(Stile.tex("res://assets/bs/wufeng.webp"), w, false, Color(0.85, 0.85, 0.85))
+	draw_rect(w, Color(0.4, 0.1, 0.1), false, 6)
+	for rr in 4:
+		var ids: Array = s.pir_id[rr]
+		for j in ids.size():
+			var q := pos_piramide(rr, j)
+			draw_texture_rect(Stile.tex("res://assets/bs/maledizione_%s.webp" % ids[j]), Rect2(q - Vector2(28, 28), Vector2(56, 56)), false)
+	for j in int(s.urne):
+		var q := pos_urna(j)
+		draw_texture_rect(Stile.tex("res://assets/bs/cat_urna.webp"), Rect2(q - Vector2(32, 32), Vector2(64, 64)), false)
+	for d in DEMONI:
+		if int(s.demoni[d]) != -1:
+			var q := pos_demone_wf(d)
+			draw_rect(Rect2(q - Vector2(40, 60), Vector2(80, 120)), Color(0, 0, 0, 0.6))
+	if int(s.scheletri) < 3:
+		var q := C_WF + (Vector2(870, 150) / 1374.0 - Vector2(0.5, 0.5)) * LATO_WF
+		_numero(q + Vector2(30, 30), str(int(s.scheletri)))
+	if not s.inc_mano.is_empty():
+		var q := C_WF + Vector2(LATO_WF / 2.0 - 40, -LATO_WF / 2.0 + 30)
+		_numero(q, str(s.inc_mano.size()))
+
+func _ritratto(c: Vector2, d: String, r: float) -> void:
+	var pulsa := 0.5 + 0.5 * sin(_tempo * 3.0)
+	draw_circle(c + Vector2(3, 4), r, Color(0, 0, 0, 0.5))
+	if d == "ombra":
+		draw_circle(c, r + 6 + 4 * pulsa, Color(0.9, 0.1, 0.05, 0.3))
+	draw_texture_rect(Stile.tex("res://assets/bs/ritratto_%s.webp" % d), Rect2(c - Vector2(r, r), Vector2(r, r) * 2.0), false)
+	draw_arc(c, r, 0, TAU, 32, Color(0.85, 0.2, 0.15), 3)
+
 func _disegna_evidenze() -> void:
 	var pulsa := 0.55 + 0.45 * sin(_tempo * 5.0)
 	var col := Color(colore_evidenzia.r, colore_evidenzia.g, colore_evidenzia.b, 0.55 + 0.4 * pulsa)
@@ -343,6 +451,13 @@ func _disegna_evidenze() -> void:
 			var cen := Vector2(SPAZI_X[int(x[1])], SPAZIO_Y)
 			draw_rect(Rect2(cen - CARTA / 2.0, CARTA).grow(14), col, false, 18)
 			draw_set_transform_matrix(_xform())
+		elif o.has("cata") and s.get("segreto", false):
+			var i := int(o.cata)
+			if fatte.has("c%d" % i):
+				continue
+			fatte["c%d" % i] = true
+			var l := LATO_CATA / 3.0
+			draw_rect(Rect2(centro_cata(i) - Vector2(l, l) / 2.0, Vector2(l, l)).grow(-6), col, false, 7)
 		elif o.has("plancia"):
 			var q := int(o.plancia)
 			var k2 := "p%d" % q
@@ -364,6 +479,14 @@ func cosa_in(schermo: Vector2) -> Dictionary:
 func cosa_in_mondo(w: Vector2) -> Dictionary:
 	if s.is_empty():
 		return {}
+	if s.get("segreto", false):
+		var rc := Rect2(C_CATA - Vector2(LATO_CATA, LATO_CATA) / 2.0, Vector2(LATO_CATA, LATO_CATA))
+		if rc.has_point(w):
+			var l := LATO_CATA / 3.0
+			var i := clampi(int((w.y - rc.position.y) / l), 0, 2) * 3 + clampi(int((w.x - rc.position.x) / l), 0, 2)
+			return {"cata": i}
+		if Rect2(C_WF - Vector2(LATO_WF, LATO_WF) / 2.0, Vector2(LATO_WF, LATO_WF)).has_point(w):
+			return {"wufeng": true}
 	# tessere
 	if absf(w.x) <= T * 1.5 and absf(w.y) <= T * 1.5:
 		var c := int(floor((w.x + T * 1.5) / T))

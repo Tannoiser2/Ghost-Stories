@@ -8,7 +8,7 @@ signal esci
 
 const CHIAVE_SALVATAGGIO := "ghoststories_partita"
 const BREVE := {"casa_te": "Casa del Tè", "erborista": "Erborista", "padiglione": "Padiglione", "altare": "Altare",
-	"tempio": "Tempio", "cerchio": "Cerchio", "stregone": "Stregone", "cimitero": "Cimitero", "guardiano": "Guardiano", "kungfu": "Kung-Fu"}
+	"tempio": "Tempio", "cerchio": "Cerchio", "stregone": "Stregone", "cimitero": "Cimitero", "guardiano": "Guardiano", "kungfu": "Kung-Fu", "calligrafo": "Calligrafo"}
 
 var rete: Rete
 var m: Motore = null              # nullo per gli ospiti online
@@ -70,6 +70,7 @@ func avvia(config: Dictionary, p: Array) -> void:
 	m = Motore.new()
 	m.nuova_partita(cfg)
 	ia = IA.new(m)
+	ia.wf_caso = 0.5 if cfg.get("wf_indulgente", false) else 0.0
 	_imposta_posti_neutri()
 	s = m.s
 	_dopo_cambio()
@@ -83,6 +84,7 @@ func riprendi(testo: String) -> bool:
 	ia = IA.new(m)
 	posti = Motore.normalizza(j.get("posti", []))
 	cfg = j.get("cfg", {})
+	ia.wf_caso = 0.5 if cfg.get("wf_indulgente", false) else 0.0
 	# riprendendo da soli, i posti online tornano al computer
 	if not online:
 		for x in posti:
@@ -419,6 +421,12 @@ func _aggiorna() -> void:
 		_mostra_finale()
 
 func _nome_posto(p: int) -> String:
+	if p == Motore.WU:
+		var w: Dictionary = posti[p] if p < posti.size() else {}
+		match w.get("tipo", "ia"):
+			"locale": return "Wu-Feng"
+			"remoto": return "Wu-Feng - %s" % w.get("nome", "amico")
+		return "Wu-Feng (computer)"
 	var b: Dictionary = s.plance[p]
 	var col: String = "Taoista " + Dati.NOMI_COLORE[b.colore]
 	if not b.taoista:
@@ -453,6 +461,10 @@ func _barra() -> void:
 		t += "\nVillici in salvo %d  ·  Villici morti %d/12  ·  Ricettacoli %d/4  ·  Cristalli in riserva %d" % [s.villici_salvi.size(), s.villici_morti.size(), pieni, int(s.cristalli)]
 		if s.barriera:
 			t += "  ·  BARRIERA MISTICA"
+	if s.get("segreto", false):
+		t += "\nUrne %d/3  ·  Incarnazioni in mano a Wu-Feng %d  ·  Scheletri liberi %d  ·  Maledizioni %d-%d-%d-%d" % [int(s.urne), s.inc_mano.size(), int(s.scheletri), int(s.piramide[0]), int(s.piramide[1]), int(s.piramide[2]), int(s.piramide[3])]
+		if int(s.ombra) >= 0:
+			t += "  ·  OMBRA DI WU-FENG IN GIOCO"
 	barra.text = t
 	barra_pan.size.y = 0
 
@@ -468,6 +480,62 @@ func _schede() -> void:
 			ordine.append(p)
 	for p in ordine:
 		box_schede.add_child(_scheda(p))
+	if s.get("segreto", false):
+		box_schede.add_child(_scheda_wufeng())
+		box_schede.add_child(_scheda_mantra())
+
+func _riquadro(bordo: Color) -> Array:
+	var pc := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.04, 0.06, 0.92)
+	sb.border_color = bordo
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(10)
+	pc.add_theme_stylebox_override("panel", sb)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	pc.add_child(v)
+	return [pc, v]
+
+func _scheda_wufeng() -> Control:
+	var r := _riquadro(Color(0.7, 0.15, 0.12))
+	var v: VBoxContainer = r[1]
+	v.add_child(Stile.etichetta(_nome_posto(Motore.WU), 22, Color(0.95, 0.45, 0.35), Stile.titolo()))
+	var dem := []
+	for d in Motore.DEMONI:
+		var i := int(s.demoni[d])
+		dem.append("%s: %s" % [Dati.demone(d).nome, "sulla plancia" if i == -1 else ("ritirato" if i < -1 else "nelle catacombe")])
+	v.add_child(Stile.paragrafo("\n".join(dem), 17, Stile.TESTO_DEBOLE))
+	v.add_child(Stile.etichetta("Maledizioni in mano", 18, Stile.ORO))
+	var g := GridContainer.new()
+	g.columns = 5
+	v.add_child(g)
+	for rr in [1, 2, 3, 4]:
+		var vis: bool = rr == 1 or _rango_visibile(rr)
+		for m in s.mal_mano[str(rr)]:
+			var ic := TextureRect.new()
+			ic.custom_minimum_size = Vector2(40, 40)
+			ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			ic.texture = Stile.tex("res://assets/bs/maledizione_%s.webp" % m) if vis else Stile.tex("res://assets/bs/maledizione_dorso_%d.webp" % rr)
+			ic.tooltip_text = ("Rango %d: %s" % [rr, Dati.maledizione(m).desc]) if vis else "Rango %d (coperta)" % rr
+			g.add_child(ic)
+	return r[0]
+
+func _rango_visibile(rr: int) -> bool:
+	var n: Array = s.piramide
+	return int(n[rr - 2]) >= 2 or (rr > 2 and int(n[rr - 2]) >= 1)
+
+func _scheda_mantra() -> Control:
+	var r := _riquadro(Color(0.75, 0.1, 0.1))
+	var v: VBoxContainer = r[1]
+	v.add_child(Stile.etichetta("Mantra di Sangue", 22, Color(0.95, 0.35, 0.3), Stile.titolo()))
+	for ms in s.ms:
+		var l := Stile.paragrafo("[%d/%d Qi] %s" % [int(ms.qi), int(ms.liv), Dati.mantra_sangue(ms.id).get("desc", "")], 16)
+		l.custom_minimum_size.x = 200
+		v.add_child(l)
+	return r[0]
 
 func _scheda(p: int) -> Control:
 	var b: Dictionary = s.plance[p]
@@ -592,7 +660,7 @@ func _domanda() -> void:
 	# sul tavolo si illuminano le scelte che hanno un posto
 	var con_posto := []
 	for o in opz:
-		if o.has("tessera") or o.has("spazio") or o.has("plancia"):
+		if o.has("tessera") or o.has("spazio") or o.has("plancia") or o.has("cata"):
 			con_posto.append(o)
 	tavolo.evidenzia = con_posto if mio else []
 	if vista and in_3d:
@@ -624,11 +692,15 @@ func _domanda() -> void:
 		g.add_theme_constant_override("h_separation", 6)
 		g.add_theme_constant_override("v_separation", 6)
 		var per_t := {}
+		var giu: bool = mosse[0].has("cata")
 		for o in mosse:
-			per_t[int(o.tessera)] = o
+			per_t[int(o.get("tessera", o.get("cata", -1)))] = o
 		var qui := int(s.plance[chi].tessera)
 		for t in 9:
-			var b := Stile.bottone(BREVE.get(s.villaggio[t].id, "?"), 17)
+			var etichetta: String = BREVE.get(s.villaggio[t].id, "?")
+			if giu:
+				etichetta = "Catacomba " + String(Dati.NOMI_COLORE[s.cata[t].col])
+			var b := Stile.bottone(etichetta, 17)
 			b.custom_minimum_size = Vector2(110, 48)
 			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			b.clip_text = true
@@ -779,11 +851,28 @@ func _toccato(q: Dictionary) -> void:
 				trovate.append(o)
 			elif q.has("spazio") and o.has("spazio") and int(o.spazio[0]) == int(q.spazio[0]) and int(o.spazio[1]) == int(q.spazio[1]):
 				trovate.append(o)
+			elif q.has("cata") and o.has("cata") and int(o.cata) == int(q.cata):
+				trovate.append(o)
 			elif not q.has("spazio") and q.has("plancia") and o.has("plancia") and not o.has("spazio") and int(o.plancia) == int(q.plancia):
 				trovate.append(o)
 		if trovate.size() == 1:
 			_rispondi(trovate[0].id)
 			return
+	if q.has("cata"):
+		var i := int(q.cata)
+		var c: Dictionary = s.cata[i]
+		var testo := "Catacomba %s (demoni di resistenza %s)\n" % [Dati.NOMI_COLORE[c.col], Dati.NOMI_COLORE[c.col]]
+		testo += "Segnalini ancora sepolti: %d. %s" % [c.pila.size(), "C'è una scala per il villaggio." if c.scala else "Nessuna scala."]
+		var m2 := Motore.new()
+		m2.s = s
+		for dm in m2.demoni_in(i):
+			testo += "\n%s (resistenza %d): %s" % [Dati.demone(dm).nome, int(Dati.demone(dm).resistenza), Dati.demone(dm).desc]
+		_mostra_info(testo, Stile.tex("res://assets/bs/catacombe.webp"))
+		return
+	if q.has("wufeng"):
+		var testo := "Plancia di Wu-Feng. Ogni carta pescata: nel villaggio, per evocare un demone (costo 2, 3 o 4 in resistenza) o per lanciare una maledizione del suo colore (i neri valgono per tutti). Per lanciare una maledizione di rango superiore ne servono due del rango sotto. Tre urne trovate nelle catacombe portano l'Ombra di Wu-Feng, invincibile."
+		_mostra_info(testo, Stile.tex("res://assets/bs/wufeng.webp"))
+		return
 	if q.has("carta"):
 		_mostra_info(Testi.carta(int(q.carta)), Stile.carta(int(q.carta)))
 	elif q.has("tessera"):

@@ -13,7 +13,8 @@ static var P := {
 }
 
 var m: Motore
-var cerca := true          # simula le mosse possibili con il motore (falso dentro le simulazioni)
+var cerca := true
+var wf_caso := 0.0                   # Black Secret: quanto spesso Wu-Feng (computer) sceglie a caso          # simula le mosse possibili con il motore (falso dentro le simulazioni)
 var campioni := 4          # tiri simulati per ogni mossa
 var profondo := false      # simula anche i turni dei compagni fino al proprio turno successivo
 
@@ -27,10 +28,15 @@ func scegli() -> String:
 	var o: Array = d.opzioni
 	var p := int(d.chi)
 	var id := ""
+	if p == Motore.WU:
+		# Wu-Feng indulgente: metà delle volte sceglie a caso
+		if wf_caso > 0.0 and randf() < wf_caso:
+			return String(o[randi() % o.size()].id)
+		return _wufeng(d, o)
 	match String(d.tipo):
 		"yang":
 			id = _yang(p, o)
-			if cerca and (String(id).begins_with("m:") or String(id).begins_with("mv:") or id in ["esorcizza", "n_esorcizza", "aiuto", "n_aiuto", "basta"]):
+			if cerca and not m.sotto(p) and String(m.s.domanda.task.get("fase", "")) != "livello" and (String(id).begins_with("m:") or String(id).begins_with("mv:") or id in ["esorcizza", "n_esorcizza", "aiuto", "n_aiuto", "basta"]):
 				id = _cerca(p, o, id)
 		"piazza": id = _piazza(o)
 		"chi_perde_qi": id = _max_qi(o)
@@ -67,6 +73,11 @@ func scegli() -> String:
 		"perdi_qi": id = _max_qi(o)
 		"pozione": id = _pozione(o)
 		"kungfu": id = _kungfu(p, o)
+		"ms_qi": id = _ms_qi(o)
+		"ms_attiva": id = _ms_qi(o)
+		"ms_bersaglio": id = _ms_bersaglio(o)
+		"calligrafo": id = _calligrafo(o)
+		"esorcismo_demone": id = o[0].id
 	for x in o:
 		if x.id == id:
 			return id
@@ -270,6 +281,10 @@ func _spazio_buddha_libero() -> Array:
 
 func valore_tessera(p: int, t: int) -> float:
 	var v := maxf(valore_esorcismo(p, t), valore_aiuto(p, t))
+	if m.segreto() and m.s.cata[t].scala and not m.demoni_in(t).is_empty() and int(m.plancia(p).qi) >= 2:
+		# un demone che scava proprio qui sotto: le urne di Wu-Feng sono in pericolo
+		var pila: int = m.s.cata[t].pila.size()
+		v = maxf(v, 2.0 + float(pila) * 0.8 + float(int(m.s.urne)) * 1.2)
 	if m.s.get("luna", false):
 		# il Portale con un villico pronto da salvare
 		if t == int(m.s.get("portale", -1)) and m.villico_in_cima(t) != "":
@@ -287,6 +302,9 @@ static func distanza(a: int, b: int) -> int:
 # ------------------------------------------------------------ fase Yang
 
 func _yang(p: int, o: Array) -> String:
+	var fase_y: String = m.s.domanda.task.get("fase", "")
+	if m.segreto() and (m.sotto(p) or fase_y == "livello"):
+		return _yang_segreto(p, o, fase_y)
 	var ids := {}
 	for x in o:
 		ids[x.id] = x
@@ -394,6 +412,260 @@ func _yang(p: int, o: Array) -> String:
 	if ids.has("basta"):
 		return "basta"
 	return "fine" if ids.has("fine") else o[o.size() - 1].id
+
+# ------------------------------------------------------------ Black Secret
+
+func _ms_qi(o: Array) -> String:
+	var best: String = o[0].id
+	var bv := -99.0
+	for x in o:
+		if not x.has("mantra"):
+			continue
+		var ms: Dictionary = m.s.ms[int(x.mantra)]
+		var v := float(int(ms.qi) + 1) / float(int(ms.liv)) + float(int(ms.liv)) * 0.1
+		if String(ms.id) in ["condividi", "demoni_via", "disinfesta", "scarta2", "qi1"]:
+			v += 0.3
+		if v > bv:
+			bv = v
+			best = x.id
+	return best
+
+func _ms_bersaglio(o: Array) -> String:
+	if o[0].has("plancia"):
+		return _min_qi(o)
+	if o[0].has("spazio"):
+		var best: String = o[0].id
+		var bv := -99.0
+		for x in o:
+			var c := int(m.spazio(int(x.spazio[0]), int(x.spazio[1])).c)
+			var v := minaccia(int(x.spazio[0]), int(x.spazio[1])) if c > 0 else -float(m.n_infestate())
+			if v > bv:
+				bv = v
+				best = x.id
+		return best
+	return o[0].id
+
+func _calligrafo(o: Array) -> String:
+	for x in o:
+		if String(x.id).begins_with("qm:"):
+			return _ms_qi(o.filter(func(y): return String(y.id).begins_with("qm:")))
+	return "basta"
+
+## Taoista nelle catacombe o davanti a una scala
+func _yang_segreto(p: int, o: Array, fase: String) -> String:
+	var b := m.plancia(p)
+	var qui := int(b.tessera)
+	var ids := []
+	for x in o:
+		ids.append(x.id)
+	match fase:
+		"livello":
+			if "scendi" in ids and not m.demoni_in(qui).is_empty() and int(b.qi) >= 2 and m.dadi_disponibili() >= 2:
+				return "scendi"
+			if "sali" in ids and m.demoni_in(qui).is_empty():
+				return "sali"
+			return "resta_livello"
+		"azione":
+			if "esorcizza_demone" in ids:
+				return "esorcizza_demone"
+			return "basta" if "basta" in ids else String(o[0].id)
+		"inizio":
+			# verso un demone, altrimenti verso una scala per risalire
+			var best: String = o[0].id
+			var bv := -99.0
+			for x in o:
+				if not String(x.id).begins_with("m:"):
+					continue
+				var t := int(String(x.id).substr(2))
+				var v := float(m.demoni_in(t).size()) * 3.0 + (1.0 if m.s.cata[t].scala else 0.0) - float(distanza(t, qui)) * 0.1
+				if v > bv:
+					bv = v
+					best = x.id
+			return best
+	return String(o[-1].id)
+
+# ------------------------------------------------------------ Wu-Feng guidato dal computer
+
+func _wufeng(d: Dictionary, o: Array) -> String:
+	match String(d.tipo):
+		"wf_carta": return _wf_carta(int(d.get("carta", 0)), o)
+		"piazza", "wf_scheletro": return _wf_spazio(o, int(d.get("carta", 0)))
+		"wf_ingresso": return _wf_ingresso(o)
+		"wf_demone_azione": return _wf_demone(o)
+		"wf_ombra": return _wf_ombra(o)
+		"wf_maledizione":
+			var best := "no"
+			var br := 0
+			for x in o:
+				if x.has("maledizione") and int(Dati.maledizione(x.maledizione).rango) > br:
+					br = int(Dati.maledizione(x.maledizione).rango)
+					best = x.id
+			return best
+		"wf_incarnazione":
+			return o[0].id
+	# bersagli: il Taoista più debole, il mantra più carico, il fantasma più forte
+	if o[0].has("plancia"):
+		var best: String = o[0].id
+		var mn := 99
+		for x in o:
+			if x.has("plancia") and int(m.plancia(int(x.plancia)).qi) < mn:
+				mn = int(m.plancia(int(x.plancia)).qi)
+				best = x.id
+		return best
+	if o[0].has("mantra"):
+		var best: String = o[0].id
+		var mx := -1
+		for x in o:
+			if x.has("mantra") and int(m.s.ms[int(x.mantra)].qi) > mx:
+				mx = int(m.s.ms[int(x.mantra)].qi)
+				best = x.id
+		return best
+	if o[0].has("cata"):
+		# la scala o la catacomba vicina ai Taoisti
+		var best: String = o[0].id
+		var bv := -99.0
+		for x in o:
+			var v := 0.0
+			for q in m.taoisti_vivi():
+				v -= float(distanza(int(x.cata), int(m.plancia(q).tessera)))
+			v += float(m.s.cata[int(x.cata)].pila.size()) * 0.3
+			if v > bv:
+				bv = v
+				best = x.id
+		return best
+	if o[0].has("tessera"):
+		# la tessera infestata più lontana dai Taoisti
+		var best: String = o[0].id
+		var bv := -99.0
+		for x in o:
+			var v := 0.0
+			for q in m.taoisti_vivi():
+				v += float(distanza(int(x.tessera), int(m.plancia(q).tessera)))
+			if v > bv:
+				bv = v
+				best = x.id
+		return best
+	if o[0].has("carta"):
+		var best: String = o[0].id
+		var br := -1
+		for x in o:
+			if x.has("carta") and Dati.forza(int(x.carta)) > br:
+				br = Dati.forza(int(x.carta))
+				best = x.id
+		return best
+	if o[0].has("spazio"):
+		return _wf_spazio(o, 0)
+	return o[0].id
+
+func _wf_carta(c: int, o: Array) -> String:
+	var g := Dati.carta(c)
+	var v_a := 1.5 + float(Dati.forza(c))
+	if Dati.ha(c, "turno", "infestante"):
+		v_a += 3.0
+	if Dati.ha(c, "turno", "tormento") or Dati.ha(c, "turno", "divoratore"):
+		v_a += 2.5
+	if not g.get("arrivo", []).is_empty():
+		v_a += 1.5
+	var best := "a"
+	var bv := v_a
+	var demoni := 0
+	for dd in Motore.DEMONI:
+		if int(m.s.demoni[dd]) >= 0:
+			demoni += 1
+	for x in o:
+		var id: String = x.id
+		var v := -99.0
+		if id.begins_with("b:"):
+			var piene := 0
+			for i in 9:
+				piene += m.s.cata[i].pila.size()
+			v = 3.0 + float(piene) * 0.12 - float(demoni) * 1.2 + (3.0 - float(int(m.s.urne))) * 0.5
+		elif id.begins_with("m:"):
+			var md := Dati.maledizione(id.substr(2))
+			v = 2.0 + float(int(md.rango)) * 1.6
+			if String(md.e) in ["qi1", "infesta_qi", "dado2", "incarnazione_gioca", "tutti_demoni"]:
+				v += 1.5
+		if v > bv:
+			bv = v
+			best = id
+	return best
+
+func _wf_spazio(o: Array, c: int) -> String:
+	var best: String = o[0].id
+	var bv := -999.0
+	for x in o:
+		if not x.has("spazio"):
+			continue
+		var p := int(x.spazio[0])
+		var k := int(x.spazio[1])
+		var sp := m.spazio(p, k)
+		var v := 0.0
+		if sp.buddha and not Dati.e_incarnazione(c):
+			v -= 50.0
+		var t: int = m.linea(p, k)[0]
+		for q in m.taoisti_vivi():
+			v += float(distanza(t, int(m.plancia(q).tessera))) * 0.8
+			if m.sotto(q):
+				v += 1.0
+		if not m.s.villaggio[t].inf:
+			v += 1.0
+		var pieni := 0
+		for j in 3:
+			if int(m.spazio(p, j).c) > 0:
+				pieni += 1
+		v += float(pieni) * 1.2
+		if v > bv:
+			bv = v
+			best = x.id
+	return best
+
+func _wf_ingresso(o: Array) -> String:
+	var best: String = o[0].id
+	var bv := -99.0
+	for x in o:
+		var i := int(x.cata)
+		var v := float(m.s.cata[i].pila.size()) - float(m.taoisti_sotto(i).size()) * 3.0
+		for y in m.adiacenti(i):
+			v += float(m.s.cata[y].pila.size()) * 0.3
+		if v > bv:
+			bv = v
+			best = x.id
+	return best
+
+func _wf_demone(o: Array) -> String:
+	for x in o:
+		if x.id == "scava":
+			return "scava"
+	var best: String = o[-1].id
+	var bv := -99.0
+	for x in o:
+		if not String(x.id).begins_with("c:"):
+			continue
+		var i := int(String(x.id).substr(2))
+		var v := float(m.s.cata[i].pila.size()) - float(m.taoisti_sotto(i).size()) * 4.0 - float(m.demoni_in(i).size()) * 0.5
+		if v > bv:
+			bv = v
+			best = x.id
+	return best
+
+func _wf_ombra(o: Array) -> String:
+	for x in o:
+		if x.id == "attacca":
+			return "attacca"
+	# va dal Taoista più debole; se non c'è nessuno da raggiungere maledice la tessera
+	var deb := -1
+	for q in m.taoisti_vivi():
+		if deb < 0 or int(m.plancia(q).qi) < int(m.plancia(deb).qi):
+			deb = q
+	if deb >= 0:
+		var dove := ("c:%d" if m.sotto(deb) else "v:%d") % int(m.plancia(deb).tessera)
+		for x in o:
+			if x.id == dove:
+				return dove
+	for x in o:
+		if x.id == "tessera":
+			return "tessera"
+	return o[0].id
 
 func _suling(o: Array) -> String:
 	var best := "no"

@@ -45,6 +45,8 @@ var _mat := {}
 var _dadi := Node3D.new()
 var _luna := Node3D.new()           # White Moon: Portale, ricettacoli, villici, Su-Ling
 var _firma_luna := ""
+var _segreto := Node3D.new()        # Black Secret: catacombe, demoni, Ombra, plancia di Wu-Feng
+var _firma_segreto := ""
 var _tocchi := {}
 var _gesto := {}
 var _premuto := false
@@ -75,6 +77,7 @@ func _ready() -> void:
 	mondo.add_child(_gettoni)
 	mondo.add_child(_dadi)
 	mondo.add_child(_luna)
+	mondo.add_child(_segreto)
 	_aggiorna_camera()
 
 func _ambiente() -> void:
@@ -359,6 +362,7 @@ func aggiorna(st: Dictionary) -> void:
 	_aggiorna_buddha()
 	_aggiorna_gettoni()
 	_aggiorna_luna()
+	_aggiorna_segreto()
 	_aggiorna_evidenze()
 	_eventi()
 
@@ -555,7 +559,7 @@ func _aggiorna_taoisti(subito: bool) -> void:
 		var b: Dictionary = s.plance[p]
 		if not b.taoista:
 			continue
-		var t := int(b.tessera)
+		var t := int(b.tessera) + (10 if b.get("sotto", false) else 0)
 		if not per_t.has(t):
 			per_t[t] = []
 		per_t[t].append(p)
@@ -567,7 +571,7 @@ func _aggiorna_taoisti(subito: bool) -> void:
 			var off := Vector3.ZERO
 			if l.size() > 1:
 				off = Vector3(0.68, 0, 0).rotated(Vector3.UP, TAU * i / l.size() + PI / 4)
-			var pos := _v3(tavolo.centro_tessera(t), 0.07) + off
+			var pos := _v3(tavolo.centro_tessera(t) if t < 10 else tavolo.centro_cata(t - 10), 0.07) + off
 			if not _taoisti.has(p):
 				var n := Node3D.new()
 				var mi := _miniatura("taoista", 1.7, _mat_taoista(Stile.colore(b.colore)))
@@ -801,6 +805,146 @@ func _aggiorna_luna() -> void:
 		cup.material_override = mm
 		_luna.add_child(cup)
 
+## Black Secret: si ricostruisce solo quando cambia qualcosa
+func _aggiorna_segreto() -> void:
+	if not s.get("segreto", false):
+		return
+	var pile := []
+	for c in s.cata:
+		pile.append([c.pila.size(), c.scala])
+	var firma := str([pile, s.demoni, s.ombra, s.ombra_sotto, s.pir_id, s.urne, s.scheletri])
+	if firma == _firma_segreto:
+		return
+	_firma_segreto = firma
+	for c in _segreto.get_children():
+		c.queue_free()
+	# la plancia delle catacombe e quella di Wu-Feng, appoggiate sul tavolo
+	var lc := Tavolo.LATO_CATA * U
+	var cat := _piano(lc, lc, _materiale_tex(Stile.tex("res://assets/bs/catacombe.webp")))
+	cat.position = _v3(Tavolo.C_CATA, 0.03)
+	_segreto.add_child(cat)
+	var bordo := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(lc + 0.2, 0.06, lc + 0.2)
+	bordo.mesh = bm
+	var mbor := StandardMaterial3D.new()
+	mbor.albedo_color = Color(0.16, 0.12, 0.1)
+	bordo.material_override = mbor
+	bordo.position = _v3(Tavolo.C_CATA, 0.0)
+	_segreto.add_child(bordo)
+	var lw := Tavolo.LATO_WF * U
+	var wf := _piano(lw, lw, _materiale_tex(Stile.tex("res://assets/bs/wufeng.webp")))
+	wf.position = _v3(Tavolo.C_WF, 0.03)
+	_segreto.add_child(wf)
+	var legno := StandardMaterial3D.new()
+	legno.albedo_color = Color(0.42, 0.28, 0.15)
+	legno.roughness = 0.9
+	for i in 9:
+		var c := tavolo.centro_cata(i)
+		var cc: Dictionary = s.cata[i]
+		if cc.scala:
+			_segreto.add_child(_scala(_v3(c + Vector2(-55, -50), 0.03), legno))
+		var pila: Array = cc.pila
+		for j in pila.size():
+			var g := MeshInstance3D.new()
+			var gm := CylinderMesh.new()
+			gm.top_radius = 0.24
+			gm.bottom_radius = 0.24
+			gm.height = 0.05
+			g.mesh = gm
+			var mg := StandardMaterial3D.new()
+			mg.albedo_color = Color(0.36, 0.25, 0.16)
+			g.material_override = mg
+			g.position = _v3(c + Vector2(40, -40), 0.06 + j * 0.055)
+			_segreto.add_child(g)
+		if not pila.is_empty():
+			var top := _piano(0.42, 0.42, _materiale_tex(Stile.tex("res://assets/bs/cat_dorso_%d.webp" % pila.size())))
+			top.position = _v3(c + Vector2(40, -40), 0.09 + (pila.size() - 1) * 0.055)
+			_segreto.add_child(top)
+	# i demoni nelle catacombe
+	var per_cata := {}
+	for d in Tavolo.DEMONI:
+		var i := int(s.demoni[d])
+		if i >= 0:
+			if not per_cata.has(i):
+				per_cata[i] = []
+			per_cata[i].append(d)
+	for i in per_cata:
+		var l: Array = per_cata[i]
+		for j in l.size():
+			var d: String = l[j]
+			var md := StandardMaterial3D.new()
+			md.albedo_color = {"cercatore": Color(0.45, 0.36, 0.22), "scavatore": Color(0.4, 0.3, 0.2), "becchino": Color(0.55, 0.25, 0.12)}[d]
+			md.roughness = 0.75
+			md.emission_enabled = true
+			md.emission = Color(0.5, 0.08, 0.04)
+			md.emission_energy_multiplier = 0.25
+			var mi := _miniatura("demone_" + d, {"cercatore": 0.8, "scavatore": 1.0, "becchino": 1.2}[d], md)
+			mi.position = _v3(tavolo.centro_cata(i) + Vector2(-25 + j * 45, 30), 0.06)
+			mi.rotation.y = PI
+			_segreto.add_child(mi)
+			var luce := OmniLight3D.new()
+			luce.light_color = Color(1.0, 0.3, 0.15)
+			luce.light_energy = 0.35
+			luce.omni_range = 1.3
+			luce.position = mi.position + Vector3(0, 0.9, 0)
+			_segreto.add_child(luce)
+	# l'Ombra di Wu-Feng: figura alta, rossa, con fiamme
+	if int(s.ombra) >= 0:
+		var mo := StandardMaterial3D.new()
+		mo.albedo_color = Color(0.45, 0.06, 0.05)
+		mo.roughness = 0.6
+		mo.emission_enabled = true
+		mo.emission = Color(0.6, 0.05, 0.02)
+		mo.emission_energy_multiplier = 0.45
+		var om := _miniatura("ombra_wufeng", 2.6, mo)
+		var dove := tavolo.centro_cata(int(s.ombra)) if s.ombra_sotto else tavolo.centro_tessera(int(s.ombra)) + Vector2(-60, -60)
+		om.position = _v3(dove, 0.06)
+		_segreto.add_child(om)
+		var fuoco := _particelle_fuoco(Color(0.9, 0.2, 0.05, 0.7))
+		fuoco.position = om.position + Vector3(0, 0.3, 0)
+		_segreto.add_child(fuoco)
+		var lo := OmniLight3D.new()
+		lo.light_color = Color(1.0, 0.25, 0.1)
+		lo.light_energy = 0.8
+		lo.omni_range = 2.6
+		lo.position = om.position + Vector3(0, 1.6, 0)
+		_segreto.add_child(lo)
+	# piramide delle maledizioni e urne trovate
+	for rr in 4:
+		var ids: Array = s.pir_id[rr]
+		for j in ids.size():
+			var g := _piano(0.5, 0.5, _materiale_tex(Stile.tex("res://assets/bs/maledizione_%s.webp" % ids[j])))
+			g.position = _v3(tavolo.pos_piramide(rr, j), 0.07)
+			_segreto.add_child(g)
+	for j in int(s.urne):
+		var g := _piano(0.55, 0.55, _materiale_tex(Stile.tex("res://assets/bs/cat_urna.webp")))
+		g.position = _v3(tavolo.pos_urna(j), 0.07)
+		_segreto.add_child(g)
+
+## Una scala di legno appoggiata: due montanti e quattro pioli
+func _scala(pos: Vector3, mat: Material) -> Node3D:
+	var n := Node3D.new()
+	for x in [-0.12, 0.12]:
+		var m := MeshInstance3D.new()
+		var b := BoxMesh.new()
+		b.size = Vector3(0.05, 0.65, 0.05)
+		m.mesh = b
+		m.material_override = mat
+		m.position = Vector3(x, 0.32, 0)
+		n.add_child(m)
+	for j in 4:
+		var m := MeshInstance3D.new()
+		var b := BoxMesh.new()
+		b.size = Vector3(0.26, 0.035, 0.035)
+		m.mesh = b
+		m.material_override = mat
+		m.position = Vector3(0, 0.12 + j * 0.14, 0)
+		n.add_child(m)
+	n.position = pos
+	n.rotation.x = -0.35
+	return n
+
 func _gettone(tex: String, pos: Vector3, r: float) -> Node3D:
 	var n := Node3D.new()
 	n.position = pos
@@ -837,6 +981,13 @@ func _aggiorna_evidenze() -> void:
 			pos = _v3(tavolo.centro_spazio(int(x[0]), int(x[1])), 0.06)
 			dim = Tavolo.CARTA * Tavolo.SCALA_PLANCIA * U + Vector2(0.25, 0.25)
 			rot = -Tavolo.ANGOLI[int(x[0])]
+		elif o.has("cata") and s.get("segreto", false):
+			var k := "c%d" % int(o.cata)
+			if fatte.has(k):
+				continue
+			fatte[k] = true
+			pos = _v3(tavolo.centro_cata(int(o.cata)), 0.12)
+			dim = Vector2(1.4, 1.4)
 		elif o.has("tessera"):
 			var k := "t%d" % int(o.tessera)
 			if fatte.has(k):
@@ -1208,6 +1359,26 @@ func _eventi() -> void:
 			"risorge":
 				if _taoisti.has(int(e.p)):
 					_colonna_luce(_taoisti[int(e.p)].position, Color(0.6, 1.0, 0.8))
+			"scava":
+				var pc := _v3(tavolo.centro_cata(int(e.i)), 0.4)
+				_fumo(pc, Color(0.4, 0.3, 0.2), 0.5, 30)
+				if String(e.get("s", "")) == "urna":
+					_lampo(pc + Vector3(0, 0.8, 0), Color(1.0, 0.3, 0.1), 2.0, 0.8)
+			"urna":
+				_impulso(_v3(Tavolo.C_WF), Color(1.0, 0.2, 0.1))
+			"demone":
+				if int(e.i) >= 0:
+					_fumo(_v3(tavolo.centro_cata(int(e.i)), 0.3), Color(0.5, 0.1, 0.05), 0.5, 30)
+				elif e.get("esorcizzato", false):
+					_colonna_luce(_v3(tavolo.centro_cata(int(e.get("da", 4))), 0.1), Color(0.9, 0.8, 0.5))
+			"ombra":
+				var po := _v3(tavolo.centro_cata(int(e.i)) if e.sotto else tavolo.centro_tessera(int(e.i)), 0.5)
+				_lampo(po + Vector3(0, 1.0, 0), Color(1.0, 0.15, 0.05), 2.5, 1.0)
+				_fumo(po, Color(0.3, 0.02, 0.02), 0.8, 50)
+			"wf_maledizione":
+				_lampo(_v3(Tavolo.C_WF, 1.0), Color(0.8, 0.1, 0.4), 1.6, 0.7)
+			"ms_attiva":
+				_impulso(Vector3.ZERO, Color(0.9, 0.1, 0.1))
 			"uccidi":
 				var pv := _v3(tavolo.centro_tessera(int(e.t)), 0.3)
 				_fumo(pv, Color(0.55, 0.1, 0.1), 0.6, 40)

@@ -6,6 +6,7 @@ var dir := "/tmp/schermate"
 var w := 1920
 var h := 1080
 var luna := false
+var segreto := false
 
 func _init() -> void:
 	var a := OS.get_cmdline_user_args()
@@ -13,7 +14,8 @@ func _init() -> void:
 		dir = a[0]
 		w = int(a[1])
 		h = int(a[2])
-	luna = a.size() >= 4 and a[3] == "luna"
+	luna = a.size() >= 4 and "luna" in a[3]
+	segreto = a.size() >= 4 and "segreto" in a[3]
 	DirAccess.make_dir_recursive_absolute(dir)
 	root.size = Vector2i(w, h)
 	DisplayServer.window_set_size(Vector2i(w, h))
@@ -36,6 +38,7 @@ func _vai() -> void:
 	await _attendi(10)
 	await _foto("menu")
 	main.luna = luna
+	main.segreto = segreto
 	main._nuova()
 	await _attendi(5)
 	await _foto("impostazioni")

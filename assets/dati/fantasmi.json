@@ -930,6 +930,193 @@
    "permanente": [],
    "espansione": "luna",
    "foglio": 68
+  },
+  {
+   "n": 97,
+   "nome": "Evocatrice di Giada",
+   "originale": "Jade Conjurer",
+   "colore": "verde",
+   "resistenza": 2,
+   "arrivo": [
+    "attiva_demone"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "maledizione_libera"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 0
+  },
+  {
+   "n": 90,
+   "nome": "Bambino di Carne",
+   "originale": "Flesh Child",
+   "colore": "giallo",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "fantasma"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 1
+  },
+  {
+   "n": 98,
+   "nome": "Evocatrice di Rubino",
+   "originale": "Ruby Conjurer",
+   "colore": "rosso",
+   "resistenza": 2,
+   "arrivo": [
+    "attiva_demone"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "maledizione_libera"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 2
+  },
+  {
+   "n": 96,
+   "nome": "Evocatore di Topazio",
+   "originale": "Topaz Conjurer",
+   "colore": "blu",
+   "resistenza": 2,
+   "arrivo": [
+    "attiva_demone"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "maledizione_libera"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 3
+  },
+  {
+   "n": 93,
+   "nome": "Bambino di Lava",
+   "originale": "Lava Child",
+   "colore": "rosso",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "fantasma"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 4
+  },
+  {
+   "n": 92,
+   "nome": "Bambina Marcia",
+   "originale": "Rotten Child",
+   "colore": "verde",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "fantasma"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 5
+  },
+  {
+   "n": 91,
+   "nome": "Bambine del Lago",
+   "originale": "Lake Children",
+   "colore": "blu",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "fantasma"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 6
+  },
+  {
+   "n": 99,
+   "nome": "Evocatrice di Ossidiana",
+   "originale": "Obsidian Conjurer",
+   "colore": "nero",
+   "resistenza": 2,
+   "arrivo": [
+    "attiva_demone"
+   ],
+   "turno": [
+    "attiva_demone"
+   ],
+   "esorcismo": [
+    "maledizione_libera"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 7
+  },
+  {
+   "n": 95,
+   "nome": "Evocatore d'Ambra",
+   "originale": "Amber Conjurer",
+   "colore": "giallo",
+   "resistenza": 2,
+   "arrivo": [
+    "attiva_demone"
+   ],
+   "turno": [],
+   "esorcismo": [
+    "maledizione_libera"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 8
+  },
+  {
+   "n": 94,
+   "nome": "Bambina Dannata",
+   "originale": "Doomed Child",
+   "colore": "nero",
+   "resistenza": 1,
+   "arrivo": [
+    "incarnazione_mano"
+   ],
+   "turno": [
+    "infestante"
+   ],
+   "esorcismo": [
+    "fantasma"
+   ],
+   "permanente": [],
+   "espansione": "segreto",
+   "foglio": 9
+  },
+  {
+   "n": 200,
+   "nome": "Scheletro",
+   "originale": "Skeleton",
+   "colore": "plancia",
+   "resistenza": 1,
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [],
+   "espansione": "segreto",
+   "gettone": true
   }
  ],
  "incarnazioni": [
@@ -1237,6 +1424,98 @@
    "descrizione": "Entrando toglie dal gioco le ultime 2 carte del mazzo. A ogni fase Yin della sua plancia porta in gioco un fantasma.",
    "espansione": "luna",
    "foglio": 17
+  },
+  {
+   "n": 100,
+   "nome": "Assetata di Sangue",
+   "originale": "Blood Thirster",
+   "colore": "rosso",
+   "resistenza": 4,
+   "colore_banda": "rosso",
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "no_mantra"
+   ],
+   "incarnazione": true,
+   "descrizione": "Finché resta in gioco il Qi perso non va sui Mantra di Sangue ma torna nella riserva. Premio: uno Yin-Yang e 1 Qi su un Mantra di Sangue.",
+   "foglio": 0,
+   "espansione": "segreto"
+  },
+  {
+   "n": 103,
+   "nome": "Burattinaio",
+   "originale": "Puppet Master",
+   "colore": "giallo",
+   "resistenza": 4,
+   "colore_banda": "giallo",
+   "arrivo": [
+    "scheletri3"
+   ],
+   "turno": [
+    "scheletro"
+   ],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Entrando porta in gioco i tre scheletri di Wu-Feng; a ogni turno ne porta uno. Premio: uno Yin-Yang e 1 Qi su un Mantra di Sangue.",
+   "foglio": 1,
+   "espansione": "segreto"
+  },
+  {
+   "n": 104,
+   "nome": "Lanciatore Nero",
+   "originale": "Black Caster",
+   "colore": "nero",
+   "resistenza": 4,
+   "colore_banda": "nero",
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "maledizioni_libere"
+   ],
+   "incarnazione": true,
+   "descrizione": "Finché resta in gioco Wu-Feng lancia maledizioni con fantasmi di qualunque colore. Premio: uno Yin-Yang e 1 Qi su un Mantra di Sangue.",
+   "foglio": 2,
+   "espansione": "segreto"
+  },
+  {
+   "n": 102,
+   "nome": "Cercatore Inquieto",
+   "originale": "Restless Seeker",
+   "colore": "verde",
+   "resistenza": 4,
+   "colore_banda": "verde",
+   "arrivo": [
+    "scava_pila"
+   ],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [],
+   "incarnazione": true,
+   "descrizione": "Entrando Wu-Feng scopre e scarta una pila di segnalini delle catacombe: le urne trovate contano. Premio: uno Yin-Yang e 1 Qi su un Mantra di Sangue.",
+   "foglio": 3,
+   "espansione": "segreto"
+  },
+  {
+   "n": 101,
+   "nome": "Strega della Notte",
+   "originale": "Night Sorceress",
+   "colore": "blu",
+   "resistenza": 4,
+   "colore_banda": "blu",
+   "arrivo": [],
+   "turno": [],
+   "esorcismo": [],
+   "permanente": [
+    "no_yinyang"
+   ],
+   "incarnazione": true,
+   "descrizione": "Finché resta in gioco non si possono usare gli Yin-Yang. Premio: uno Yin-Yang e 1 Qi su un Mantra di Sangue.",
+   "foglio": 4,
+   "espansione": "segreto"
   }
  ],
  "villaggio": {
@@ -1289,6 +1568,11 @@
    "nome": "Scuola di Kung-Fu",
    "originale": "Kung-Fu School",
    "aiuto": "Esorcismo solitario contro TUTTI i fantasmi del colore della tua plancia oppure contro TUTTI i fantasmi neri (non le incarnazioni). Solo dadi, i tuoi Tao e i tuoi cristalli; nessuna ricompensa né maledizione."
+  },
+  "calligrafo": {
+   "nome": "Calligrafo",
+   "originale": "Calligrapher",
+   "aiuto": "Cambia un Mantra di Sangue con un altro dello stesso livello (il Qi sopra torna nella riserva) e/o metti 1 Qi della riserva su un Mantra di Sangue."
   }
  },
  "poteri": {
@@ -1614,5 +1898,504 @@
    "nome": "Spada Divina",
    "desc": "In ogni tuo esorcismo un dado Tao è già sul bianco: tiri solo gli altri."
   }
- }
+ },
+ "demoni": {
+  "cercatore": {
+   "nome": "Cercatore",
+   "costo": 2,
+   "resistenza": 1,
+   "desc": "Non si può esorcizzare con i segnalini Tao: servono i dadi."
+  },
+  "scavatore": {
+   "nome": "Scavatore",
+   "costo": 3,
+   "resistenza": 2,
+   "desc": "Scava anche se sullo spazio c'è un Taoista."
+  },
+  "becchino": {
+   "nome": "Becchino",
+   "costo": 4,
+   "resistenza": 3,
+   "desc": "Quando viene esorcizzato Wu-Feng tira il dado della maledizione contro il Taoista."
+  }
+ },
+ "catacombe": {
+  "colori": [
+   "rosso",
+   "blu",
+   "giallo",
+   "verde",
+   "nero",
+   "rosso",
+   "blu",
+   "giallo",
+   "verde"
+  ],
+  "ingressi": [
+   2,
+   6
+  ],
+  "strati": [
+   [
+    "buddha",
+    "sangue_suling",
+    "tavoletta",
+    "ossa",
+    "ossa",
+    "sangue_giusto",
+    "urna",
+    "urna",
+    "urna"
+   ],
+   [
+    "ossa",
+    "sangue_giusto",
+    "buddha",
+    "terra",
+    "tavoletta",
+    "tavoletta",
+    "terra",
+    "terra",
+    "terra"
+   ],
+   [
+    "terra",
+    "terra",
+    "terra",
+    "terra",
+    "sangue_giusto",
+    "ossa",
+    "buddha",
+    "ossa",
+    "tavoletta"
+   ],
+   [
+    "terra",
+    "terra",
+    "tavoletta",
+    "tavoletta",
+    "sangue_giusto",
+    "terra",
+    "terra",
+    "buddha",
+    "ossa"
+   ]
+  ],
+  "segnalini": {
+   "terra": {
+    "nome": "Terra",
+    "desc": "Niente: il segnalino esce dal gioco."
+   },
+   "buddha": {
+    "nome": "Buddha",
+    "desc": "Il demone che scava torna sulla plancia di Wu-Feng."
+   },
+   "sangue_suling": {
+    "nome": "Sangue di Su-Ling",
+    "desc": "Il Taoista di turno attiva subito un Mantra di Sangue."
+   },
+   "tavoletta": {
+    "nome": "Tavoletta maledetta",
+    "desc": "Wu-Feng lancia una maledizione del colore che vuole."
+   },
+   "ossa": {
+    "nome": "Ossa",
+    "desc": "Wu-Feng mette uno scheletro su uno spazio libero."
+   },
+   "sangue_giusto": {
+    "nome": "Sangue del Giusto",
+    "desc": "Il Taoista di turno mette 1 Qi della riserva su un Mantra di Sangue."
+   },
+   "urna": {
+    "nome": "Urna",
+    "desc": "Wu-Feng prende un'incarnazione in mano; alla terza urna entra in gioco l'Ombra di Wu-Feng."
+   }
+  }
+ },
+ "maledizioni": [
+  {
+   "id": "LBnrdXv",
+   "rango": 1,
+   "colore": "rosso",
+   "e": "tao1",
+   "desc": "Un Taoista scelto da Wu-Feng scarta 1 Tao.",
+   "luna": false
+  },
+  {
+   "id": "x8nyN3K",
+   "rango": 1,
+   "colore": "blu",
+   "e": "mantra_qi1",
+   "desc": "Toglie 1 Qi da un Mantra di Sangue.",
+   "luna": false
+  },
+  {
+   "id": "wuhTiIK",
+   "rango": 1,
+   "colore": "verde",
+   "e": "a_terra",
+   "desc": "Un Taoista finisce a terra: il prossimo movimento serve a rialzarsi.",
+   "luna": false
+  },
+  {
+   "id": "JGXCwOU",
+   "rango": 1,
+   "colore": "verde",
+   "e": "scala1",
+   "desc": "Toglie una scala dalle catacombe.",
+   "luna": false
+  },
+  {
+   "id": "r9OO2l3",
+   "rango": 1,
+   "colore": "giallo",
+   "e": "scheletri1",
+   "desc": "Mette uno scheletro su uno spazio libero.",
+   "luna": false
+  },
+  {
+   "id": "IYeu56D",
+   "rango": 1,
+   "colore": "rosso",
+   "e": "dado1",
+   "desc": "Tira il dado della maledizione contro un Taoista.",
+   "luna": false
+  },
+  {
+   "id": "OKFO8L1",
+   "rango": 1,
+   "colore": "blu",
+   "e": "fantasma",
+   "desc": "Pesca un fantasma e lo usa subito.",
+   "luna": false
+  },
+  {
+   "id": "TU6LgsI",
+   "rango": 1,
+   "colore": "giallo",
+   "e": "incarnazione_mano",
+   "desc": "Prende un'incarnazione in mano.",
+   "luna": false
+  },
+  {
+   "id": "BclCtOo",
+   "rango": 1,
+   "colore": "nero",
+   "e": "luna_villico",
+   "desc": "Sposta un villico visibile su una tessera vicina.",
+   "luna": true
+  },
+  {
+   "id": "aWas5tb",
+   "rango": 2,
+   "colore": "blu",
+   "e": "via_ultima",
+   "desc": "Toglie dal gioco l'ultima carta del mazzo.",
+   "luna": false
+  },
+  {
+   "id": "ZVacx9K",
+   "rango": 2,
+   "colore": "giallo",
+   "e": "scheletri2",
+   "desc": "Mette due scheletri su spazi liberi.",
+   "luna": false
+  },
+  {
+   "id": "jyZHNAr",
+   "rango": 2,
+   "colore": "verde",
+   "e": "attiva_demone",
+   "desc": "Attiva un demone (o l'Ombra).",
+   "luna": false
+  },
+  {
+   "id": "JrB6c37",
+   "rango": 2,
+   "colore": "verde",
+   "e": "in_catacombe",
+   "desc": "Sposta un Taoista su uno spazio delle catacombe.",
+   "luna": false
+  },
+  {
+   "id": "fwoyWKG",
+   "rango": 2,
+   "colore": "giallo",
+   "e": "sposta_fantasma",
+   "desc": "Sposta un fantasma su uno spazio libero.",
+   "luna": false
+  },
+  {
+   "id": "fkP5RIl",
+   "rango": 2,
+   "colore": "blu",
+   "e": "mantra_tutti",
+   "desc": "Toglie tutto il Qi da un Mantra di Sangue.",
+   "luna": false
+  },
+  {
+   "id": "j7CLFOC",
+   "rango": 2,
+   "colore": "nero",
+   "e": "luna_cristallo",
+   "desc": "Toglie un cristallo da un ricettacolo.",
+   "luna": true
+  },
+  {
+   "id": "x8V6FKV",
+   "rango": 2,
+   "colore": "rosso",
+   "e": "tao2",
+   "desc": "Un Taoista scarta 2 Tao.",
+   "luna": false
+  },
+  {
+   "id": "TWsYTUZ",
+   "rango": 2,
+   "colore": "rosso",
+   "e": "qi1",
+   "desc": "Un Taoista perde 1 Qi.",
+   "luna": false
+  },
+  {
+   "id": "exHyZsS",
+   "rango": 3,
+   "colore": "blu",
+   "e": "via_due",
+   "desc": "Toglie dal gioco le ultime due carte del mazzo.",
+   "luna": false
+  },
+  {
+   "id": "kG3cvO2",
+   "rango": 3,
+   "colore": "verde",
+   "e": "incarnazione_mano",
+   "desc": "Prende un'incarnazione in mano.",
+   "luna": false
+  },
+  {
+   "id": "Pn86X1L",
+   "rango": 3,
+   "colore": "verde",
+   "e": "scala2",
+   "desc": "Toglie due scale dalle catacombe.",
+   "luna": false
+  },
+  {
+   "id": "1gdVcV2",
+   "rango": 3,
+   "colore": "nero",
+   "e": "luna_uccidi",
+   "desc": "Uccide il villico in cima a una pila.",
+   "luna": true
+  },
+  {
+   "id": "RBC12PB",
+   "rango": 3,
+   "colore": "rosso",
+   "e": "via_yinyang",
+   "desc": "Un Taoista perde il suo Yin-Yang.",
+   "luna": false
+  },
+  {
+   "id": "UUfdJB6",
+   "rango": 3,
+   "colore": "blu",
+   "e": "mantra_via",
+   "desc": "Toglie dal gioco un Mantra di Sangue (il Qi torna nella riserva).",
+   "luna": false
+  },
+  {
+   "id": "KhAaEL5",
+   "rango": 3,
+   "colore": "rosso",
+   "e": "dado2",
+   "desc": "Tira due volte il dado della maledizione contro un Taoista.",
+   "luna": false
+  },
+  {
+   "id": "EI1Dvc7",
+   "rango": 3,
+   "colore": "giallo",
+   "e": "dagli_scarti",
+   "desc": "Rimette nel villaggio un fantasma degli scarti.",
+   "luna": false
+  },
+  {
+   "id": "yycXVbn",
+   "rango": 3,
+   "colore": "giallo",
+   "e": "scheletri3",
+   "desc": "Mette fino a tre scheletri.",
+   "luna": false
+  },
+  {
+   "id": "pX2lKCP",
+   "rango": 4,
+   "colore": "nero",
+   "e": "tutti_demoni",
+   "desc": "Evoca tutti i demoni disponibili.",
+   "luna": false
+  },
+  {
+   "id": "yUGgL6j",
+   "rango": 4,
+   "colore": "nero",
+   "e": "luna_portale",
+   "desc": "Sposta il Portale su una tessera a scelta.",
+   "luna": true
+  },
+  {
+   "id": "JMUkY6j",
+   "rango": 4,
+   "colore": "nero",
+   "e": "scava_pila",
+   "desc": "Scopre e scarta una pila delle catacombe: le urne contano.",
+   "luna": false
+  },
+  {
+   "id": "PKMs2x0",
+   "rango": 4,
+   "colore": "nero",
+   "e": "infesta_qi",
+   "desc": "Infesta una tessera a scelta, poi un Taoista perde 1 Qi.",
+   "luna": false
+  },
+  {
+   "id": "GdUqGs6",
+   "rango": 4,
+   "colore": "nero",
+   "e": "incarnazione_gioca",
+   "desc": "Prende un'incarnazione e ne mette in gioco una dalla mano.",
+   "luna": false
+  }
+ ],
+ "mantra_sangue": [
+  {
+   "id": "scale2",
+   "livello": 2,
+   "desc": "Rimette in gioco due scale tolte da Wu-Feng (non su tessere infestate).",
+   "luna": false
+  },
+  {
+   "id": "fondo",
+   "livello": 2,
+   "desc": "La carta in cima al mazzo va in fondo senza guardarla.",
+   "luna": false
+  },
+  {
+   "id": "qi1",
+   "livello": 2,
+   "desc": "Un Taoista guadagna 1 Qi.",
+   "luna": false
+  },
+  {
+   "id": "tao_mantra",
+   "livello": 2,
+   "desc": "Un Taoista prende 1 Tao a scelta e piazza il Mantra dell'Indebolimento.",
+   "luna": false
+  },
+  {
+   "id": "scarta1",
+   "livello": 2,
+   "desc": "Un fantasma (non incarnazione) va negli scarti senza effetti.",
+   "luna": false
+  },
+  {
+   "id": "via_maledizione",
+   "livello": 2,
+   "desc": "Una maledizione lanciata da Wu-Feng torna nella riserva.",
+   "luna": false
+  },
+  {
+   "id": "teletrasporto",
+   "livello": 2,
+   "desc": "Un Taoista va dove vuole, nel villaggio o nelle catacombe.",
+   "luna": false
+  },
+  {
+   "id": "tao2_mantra",
+   "livello": 3,
+   "desc": "Un Taoista prende 2 Tao a scelta e piazza il Mantra dell'Indebolimento.",
+   "luna": false
+  },
+  {
+   "id": "scheletri_via",
+   "livello": 3,
+   "desc": "Tutti gli scheletri in gioco sono esorcizzati.",
+   "luna": false
+  },
+  {
+   "id": "yinyang",
+   "livello": 3,
+   "desc": "Un Taoista riprende il suo Yin-Yang.",
+   "luna": false
+  },
+  {
+   "id": "sposta2",
+   "livello": 3,
+   "desc": "Un Taoista va dove vuole e un fantasma cambia spazio.",
+   "luna": false
+  },
+  {
+   "id": "demone_via",
+   "livello": 3,
+   "desc": "Un demone torna sulla plancia di Wu-Feng (non l'Ombra).",
+   "luna": false
+  },
+  {
+   "id": "buddha2",
+   "livello": 3,
+   "desc": "Due Buddha su spazi fantasma liberi.",
+   "luna": false
+  },
+  {
+   "id": "demoni_via",
+   "livello": 4,
+   "desc": "Tutti i demoni tornano sulla plancia di Wu-Feng (non l'Ombra).",
+   "luna": false
+  },
+  {
+   "id": "disinfesta",
+   "livello": 4,
+   "desc": "Tutte le tessere infestate tornano attive.",
+   "luna": false
+  },
+  {
+   "id": "condividi",
+   "livello": 4,
+   "desc": "I Taoisti ricevono uno Yin-Yang e 2 Qi.",
+   "luna": false
+  },
+  {
+   "id": "scarta2",
+   "livello": 4,
+   "desc": "Due fantasmi (non incarnazioni) vanno negli scarti senza effetti.",
+   "luna": false
+  },
+  {
+   "id": "riciclo",
+   "livello": 4,
+   "desc": "Quattro fantasmi degli scarti tornano in fondo al mazzo.",
+   "luna": false
+  },
+  {
+   "id": "luna_salva1",
+   "livello": 2,
+   "desc": "Si salva il primo villico della pila sul Portale.",
+   "luna": true
+  },
+  {
+   "id": "luna_salva1b",
+   "livello": 3,
+   "desc": "Si salva un villico (dal Portale o uno morto).",
+   "luna": true
+  },
+  {
+   "id": "luna_salva2",
+   "livello": 4,
+   "desc": "Si salvano due villici.",
+   "luna": true
+  }
+ ]
 }

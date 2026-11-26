@@ -7,6 +7,9 @@ var partita: Partita
 var livello := "iniziazione"
 var n_taoisti := 4
 var luna := false
+var segreto := false
+var wf := "ia"                       # chi gioca Wu-Feng in Black Secret
+var wf_indulgente := true
 var portale := "centro"
 var controllo := ["locale", "ia", "ia", "ia"]
 var ritmo := 0.7
@@ -216,15 +219,50 @@ func _impostazioni(ospita: bool) -> void:
 		b.pressed.connect(func(): n_taoisti = n; _impostazioni(ospita))
 		hn.add_child(b)
 	v.add_child(Stile.paragrafo("Con meno di quattro Taoisti le plance libere diventano neutre e si ricevono i segnalini potere.", 17, Stile.TESTO_DEBOLE))
-	v.add_child(Stile.etichetta("Espansione", 26, Stile.ORO, Stile.titolo()))
+	v.add_child(Stile.etichetta("Espansioni", 26, Stile.ORO, Stile.titolo()))
 	var he := HBoxContainer.new()
 	he.add_theme_constant_override("separation", 8)
 	v.add_child(he)
-	for e in [[false, "Solo base"], [true, "White Moon"]]:
-		var b := Stile.bottone_scelta(e[1], luna == e[0], 22)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.pressed.connect(func(): luna = e[0]; _impostazioni(ospita))
-		he.add_child(b)
+	var bl := Stile.bottone_scelta("White Moon: " + ("sì" if luna else "no"), luna, 22)
+	bl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bl.pressed.connect(func(): luna = not luna; _impostazioni(ospita))
+	he.add_child(bl)
+	var bs := Stile.bottone_scelta("Black Secret: " + ("sì" if segreto else "no"), segreto, 22)
+	bs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bs.pressed.connect(func(): segreto = not segreto; _impostazioni(ospita))
+	he.add_child(bs)
+	if segreto:
+		v.add_child(Stile.paragrafo("Wu-Feng è un giocatore: decide dove vanno i fantasmi, evoca demoni che scavano le catacombe in cerca delle sue urne e lancia maledizioni. I Taoisti scendono con le scale a combattere i demoni; il Qi perso alimenta i Mantra di Sangue.", 17, Stile.TESTO_DEBOLE))
+		var hw := HBoxContainer.new()
+		hw.add_theme_constant_override("separation", 8)
+		v.add_child(hw)
+		var lw := Stile.etichetta("Wu-Feng", 22)
+		lw.custom_minimum_size.x = 130
+		lw.size_flags_horizontal = Control.SIZE_FILL
+		hw.add_child(lw)
+		var sw := [["ia", "Computer"], ["locale", "Tu"]]
+		if ospita:
+			sw.append(["remoto", "Amico online"])
+		if not ospita and wf == "remoto":
+			wf = "ia"
+		for c in sw:
+			var b := Stile.bottone_scelta(c[1], wf == c[0], 20)
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			b.pressed.connect(func(): wf = c[0]; _impostazioni(ospita))
+			hw.add_child(b)
+		if wf == "ia":
+			var hd := HBoxContainer.new()
+			hd.add_theme_constant_override("separation", 8)
+			v.add_child(hd)
+			var ld := Stile.etichetta("Carattere", 22)
+			ld.custom_minimum_size.x = 130
+			ld.size_flags_horizontal = Control.SIZE_FILL
+			hd.add_child(ld)
+			for c in [[true, "Indulgente"], [false, "Spietato"]]:
+				var b := Stile.bottone_scelta(c[1], wf_indulgente == c[0], 20)
+				b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				b.pressed.connect(func(): wf_indulgente = c[0]; _impostazioni(ospita))
+				hd.add_child(b)
 	if luna:
 		v.add_child(Stile.paragrafo("Villici da portare al Portale, Su-Ling, Cristalli di Luna, Barriera Mistica, artefatti e 16 nuove carte. Si perde anche con 12 villici morti.", 17, Stile.TESTO_DEBOLE))
 		var hp := HBoxContainer.new()
@@ -290,11 +328,12 @@ func _posti() -> Array:
 	var sedi: Array = {1: [0], 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3]}[n_taoisti]
 	for k in sedi.size():
 		p[sedi[k]] = {"tipo": controllo[k], "nome": "", "uid": ""}
+	p.append({"tipo": wf if segreto else "neutra", "nome": "Wu-Feng", "uid": ""})
 	return p
 
 func _inizia() -> void:
 	var p := _posti()
-	_avvia_partita(func(pt: Partita): pt.avvia({"livello": livello, "taoisti": n_taoisti, "luna_bianca": luna, "portale": portale}, p))
+	_avvia_partita(func(pt: Partita): pt.avvia({"livello": livello, "taoisti": n_taoisti, "luna_bianca": luna, "portale": portale, "segreto_nero": segreto, "wf_indulgente": wf_indulgente and wf == "ia"}, p))
 
 func _avvia_partita(cosa: Callable) -> void:
 	_pulisci()
@@ -353,13 +392,13 @@ func _aggiorna_stanza() -> void:
 		box_ospiti.add_child(Stile.paragrafo("Gli amici aprono il gioco e scrivono il codice in «Gioca online», oppure inquadrano il QR.", 18, Stile.TESTO_DEBOLE))
 	var p := _posti()
 	var liberi := []
-	for i in 4:
+	for i in p.size():
 		if p[i].tipo == "remoto":
 			liberi.append(i)
 	var k := 0
 	for uid in ospiti:
 		var testo := "%s - " % ospiti[uid]
-		testo += ("Taoista %d" % (liberi[k] + 1)) if k < liberi.size() else "spettatore"
+		testo += (("Wu-Feng" if liberi[k] == 4 else "Taoista %d" % (liberi[k] + 1)) if k < liberi.size() else "spettatore")
 		box_ospiti.add_child(Stile.etichetta(testo, 22, Stile.VERDE))
 		k += 1
 	if liberi.size() > ospiti.size():
@@ -388,7 +427,7 @@ func _inizia_online() -> void:
 	var p := _posti()
 	var uids: Array = ospiti.keys()
 	var k := 0
-	for i in 4:
+	for i in p.size():
 		if p[i].tipo == "remoto":
 			if k < uids.size():
 				p[i].uid = uids[k]
@@ -396,7 +435,7 @@ func _inizia_online() -> void:
 				k += 1
 			else:
 				p[i].tipo = "ia"
-	_avvia_partita(func(pt: Partita): pt.avvia({"livello": livello, "taoisti": n_taoisti, "luna_bianca": luna, "portale": portale}, p))
+	_avvia_partita(func(pt: Partita): pt.avvia({"livello": livello, "taoisti": n_taoisti, "luna_bianca": luna, "portale": portale, "segreto_nero": segreto, "wf_indulgente": wf_indulgente and wf == "ia"}, p))
 
 # ------------------------------------------------------------------ online: chi entra
 
